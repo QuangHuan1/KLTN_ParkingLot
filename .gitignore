@@ -1,0 +1,5 @@
+build
+dependencies.lock
+.devcontainer
+.vscode
+*.py
