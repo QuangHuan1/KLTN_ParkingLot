@@ -1,0 +1,38 @@
+<div class="mt-4">
+    <table class="table">
+        <thead>
+            <tr>
+            <th scope="col">Order</th>
+            <th scope="col">Check-in code</th>
+            <th scope="col">License number</th>
+            <th scope="col">Gate code</th>
+            <th scope="col">Check-in time</th>
+            <th scope="col">Area code</th>
+            <th scope="col">Image</th>
+            </tr>
+        </thead>
+        {{#each checkIns}}
+        <tbody>
+            <tr>
+            <th scope="row" class="order">1</th>
+            <td>{{this._id}}</td>
+            <td>{{this.licenseNum}}</td>
+            <td>{{this.gateCode}}</td>
+            <td>{{this.checkinTime}}</td>
+            <td>{{this.areaCode}}</td>
+            <td><button>Link</button></td>
+            <td></td>
+            </tr>
+        </tbody>
+        {{/each}}
+    </table>
+</div>
+
+<script>
+    var orderCheckins = document.getElementsByClassName('order');
+    var i = 0;
+    for (let i = 0; i < orderCheckins.length; i++) 
+    {
+        orderCheckins[i].innerHTML = i + 1;
+    }
+</script>

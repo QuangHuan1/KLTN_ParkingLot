@@ -1,0 +1,41 @@
+<div class="mt-4">
+    <table class="table">
+        <thead>
+            <tr>    
+            <th scope="col">Order</th>
+            <th scope="col">Area code</th>
+            <th scope="col">Number of vacancies</th>
+            <th scope="col">Total slots</th>
+            <th scope="col">Presented cars</th>
+            </tr>
+        </thead>
+        {{#each areas}}
+        <tbody>
+            <tr>
+            <th scope="row" class="order">1</th>
+            <td>{{this.areaCode}}</td>
+            <td>{{this.vacancy}}</td>
+            <td>{{this.totalSlot}}</td>
+            <td><button type="button" class="areaCarInfoBtn" value="{{this.areaCode}}">More Information</button></td>
+            <td></td>
+            </tr>
+        </tbody>
+        {{/each}}
+    </table>
+</div>
+
+<script>
+    var orderAreas = document.getElementsByClassName('order');
+    var i = 0;
+    for (let i = 0; i < orderAreas.length; i++) 
+    {
+        orderAreas[i].innerHTML = i + 1;
+    }
+
+    $(document).ready(function () {
+    $('.areaCarInfoBtn').click((e) => {
+      let carInfo = e.target.getAttribute('value');
+      window.open(window.location.href + '/' + carInfo);
+    });
+    });
+</script>

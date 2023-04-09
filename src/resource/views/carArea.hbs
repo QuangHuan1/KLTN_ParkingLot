@@ -1,0 +1,41 @@
+<div class="mt-4">
+    <table class="table">
+        <thead>
+            <tr>
+            <th scope="col">Order</th>
+            <th scope="col">License Number</th>
+            <th scope="col">Registered</th>
+            <th scope="col">Type</th>
+            </tr>
+        </thead>
+        {{#each carInfos}}
+        <tbody>
+            <tr>
+            <th scope="row" class="order">1</th>
+            <td>{{this.licenseNum}}</td>
+            <td class="registered" >{{this.registered}}</td>
+            <td>{{this.type}}</td>
+            </tr>
+        </tbody>
+        {{/each}}
+    </table>
+</div>
+
+<script>
+    var orderCarAreas = document.getElementsByClassName('order');
+    var i = 0;
+    for (let i = 0; i < orderCarAreas.length; i++) 
+    {
+        orderCarAreas[i].innerHTML = i + 1;
+    }
+
+    var registeredCarInfors = document.getElementsByClassName('registered');
+
+    for (let i = 0; i < registeredCarInfors.length; i++) 
+    {
+        if (registeredCarInfors[i].innerHTML == 'R')
+            registeredCarInfors[i].innerHTML = 'Registerd';
+        else
+            registeredCarInfors[i].innerHTML = 'Not Yet';
+    }
+</script>

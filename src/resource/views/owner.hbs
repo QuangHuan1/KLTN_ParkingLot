@@ -1,0 +1,46 @@
+<div class="mt-4">
+    <table class="table">
+        <thead>
+            <tr>
+            <th scope="col">Order</th>
+            <th scope="col">personalId</th>
+            <th scope="col">Name</th>
+            <th scope="col">Information of cars</th>
+            </tr>
+        </thead>
+        {{#each owners}}
+        <tbody>
+            <tr>
+            <th scope="row" class="order">1</th>
+            <td>{{this.personalId}}</td>
+            <td>{{this.name}}</td>
+            <td><button type="button" class="ownerCarInfoBtn" value="{{this.personalId}}">More Information</button></td>
+            </tr>
+        </tbody>
+        {{/each}}
+    </table>
+</div>
+
+<script>
+    var orderOwners = document.getElementsByClassName('order');
+    var i = 0;
+    for (let i = 0; i < orderOwners.length; i++) 
+    {
+        orderOwners[i].innerHTML = i + 1;
+    }
+
+    $(document).ready(function () {
+    {{!-- var orderOwners = $('.order');
+        var i = 0;
+        for (let i = 0; i < orderOwners.length; i++) 
+        {
+            orderOwners[i].innerHTML = i + 1;
+        } --}}
+
+    $('.ownerCarInfoBtn').click((e) => {
+      let carInfo = e.target.getAttribute('value');
+      window.open(window.location.href + '/' + carInfo);
+    });
+    });
+
+</script>
