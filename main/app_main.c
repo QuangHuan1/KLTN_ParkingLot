@@ -199,6 +199,8 @@ void app_main(void)
 
 
     ESP_ERROR_CHECK(wifi_connect());
+    // ESP_ERROR_CHECK(wifi_connect());
+
     // ESP_ERROR_CHECK(example_connect());
 
     ESP_ERROR_CHECK(init_uart());
