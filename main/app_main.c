@@ -1,103 +1,10 @@
-/* HTTP GET Example using plain POSIX sockets
-
-   This example code is in the Public Domain (or CC0 licensed, at your option.)
-
-   Unless required by applicable law or agreed to in writing, this
-   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-   CONDITIONS OF ANY KIND, either express or implied.
+/* 
+    KLTN designed by Quyen DQ & Huan TQ
 */
-
-#include <string.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_system.h"
-#include "esp_wifi.h"
-#include "esp_event.h"
-#include "esp_log.h"
-#include "nvs_flash.h"
-#include "protocol_examples_common.h"
-
-#include "lwip/err.h"
-#include "lwip/sockets.h"
-#include "lwip/sys.h"
-#include "lwip/netdb.h"
-#include "lwip/dns.h"
-
-#include "ultrasonic.h"
-
-#include "esp_err.h"
-#include "esp_intr_alloc.h"
-#include "soc/soc_caps.h"
-#include "freertos/semphr.h"
-#include "freertos/queue.h"
-#include "freertos/ringbuf.h"
-#include "hal/uart_types.h"
-
-#include "driver/uart.h"
-#include "driver/gpio.h"
-
-
-typedef struct {
-    char *web_server;
-    char *web_port;
-} server;
-
-typedef struct {
-    gpio_num_t uart_num;
-    gpio_num_t txd_pin;
-    gpio_num_t rxd_pin;
-    gpio_num_t reader_trigger_pin;
-    gpio_num_t sensor_trigger_pin;
-    gpio_num_t sensor_echo;
-    gpio_num_t gnd_extend;
-} gpio;
-
-
-#define MAX_DISTANCE_CM 450 // 5m max // 450
-#define reader_off 0
-#define reader_on 1
-
-static const char *TAG = "HTTP POST Wating";
-static const char *TAG2 = "UltraSonic";
-
-static const int RX_BUF_SIZE = 1024;
-char request_msg[1024];
-char request_content[512];
-char recv_buf[512];
-char hexStr[512];
-
-// #define UART_NUM_2             (2) /*!< UART port 2 */
-// #define TXD_PIN (GPIO_NUM_17)
-// #define RXD_PIN (GPIO_NUM_16)
-// #define TRIGGER_PIN (GPIO_NUM_33)
-// #define GND_LOCAL (GPIO_NUM_23)
-
-#define GATE_ID 1
-
-
-
-bool allow_reader = reader_off;
-struct addrinfo *res;
-struct in_addr *addr;
-int status;
-
-server server_infor = {
-    .web_server = "192.168.190.7",
-    .web_port = "3000",
-};
-
-gpio gpio_infor = {
-    .uart_num = UART_NUM_2,
-    .txd_pin = GPIO_NUM_17,
-    .rxd_pin = GPIO_NUM_16,
-    .reader_trigger_pin = GPIO_NUM_33,
-    .sensor_trigger_pin = GPIO_NUM_13,
-    .sensor_echo = GPIO_NUM_12,
-    .gnd_extend = GPIO_NUM_23,
-};
+#include "header.h"
 
 void http_post_task(char *paraA, int paraB);
-void init(void) {
+esp_err_t init_uart(void) {
     const uart_config_t uart_config = {
         .baud_rate = 115200,
         .data_bits = UART_DATA_8_BITS,
@@ -106,30 +13,30 @@ void init(void) {
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
         .source_clk = UART_SCLK_APB,
     };
-
     // We won't use a buffer for sending data.
-    uart_driver_install(gpio_infor.uart_num, RX_BUF_SIZE * 2, 0, 0, NULL, 0);
-    uart_param_config(gpio_infor.uart_num, &uart_config);
-    uart_set_pin(gpio_infor.uart_num, gpio_infor.txd_pin, gpio_infor.rxd_pin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+    ESP_ERROR_CHECK(uart_driver_install(gpio_infor.uart_num, RX_BUF_SIZE * 2, 0, 0, NULL, 0));
+    ESP_ERROR_CHECK(uart_param_config(gpio_infor.uart_num, &uart_config));
+    ESP_ERROR_CHECK(uart_set_pin(gpio_infor.uart_num, gpio_infor.txd_pin, gpio_infor.rxd_pin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
+    return ESP_OK;
 }
 
-int sendData(const char* logName, const char* data)
-{
-    const int len = strlen(data);
-    const int txBytes = uart_write_bytes(UART_NUM_2, data, len);
-    ESP_LOGI(logName, "Wrote %d bytes", txBytes);
-    return txBytes;
-}
+// int sendData(const char* logName, const char* data)
+// {
+//     const int len = strlen(data);
+//     const int txBytes = uart_write_bytes(UART_NUM_2, data, len);
+//     ESP_LOGI(logName, "Wrote %d bytes", txBytes);
+//     return txBytes;
+// }
 
-static void tx_task(void *arg)
-{
-    static const char *TX_TASK_TAG = "TX_TASK";
-    esp_log_level_set(TX_TASK_TAG, ESP_LOG_INFO);
-    while (1) {
-        sendData(TX_TASK_TAG, "Hello world\n");
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
-    }
-}
+// static void tx_task(void *arg)
+// {
+//     static const char *TX_TASK_TAG = "TX_TASK";
+//     esp_log_level_set(TX_TASK_TAG, ESP_LOG_INFO);
+//     while (1) {
+//         sendData(TX_TASK_TAG, "Hello world\n");
+//         vTaskDelay(2000 / portTICK_PERIOD_MS);
+//     }
+// }
 
 static void rx_task(void *arg)
 {   
@@ -137,8 +44,8 @@ static void rx_task(void *arg)
     esp_log_level_set(RX_TASK_TAG, ESP_LOG_INFO);
     uint8_t* rx_data = (uint8_t*) malloc(RX_BUF_SIZE+1);
     while (1) {
-        const int rxBytes = uart_read_bytes(UART_NUM_2, rx_data, RX_BUF_SIZE, 1000 / portTICK_RATE_MS);
-
+        const int rxBytes = uart_read_bytes(gpio_infor.uart_num, rx_data, RX_BUF_SIZE, 1000 / portTICK_RATE_MS);
+        printf("bytes %d, Allow reader %d\n", rxBytes, allow_reader);
         if (rxBytes > 0 && allow_reader == reader_on) {
             rx_data[rxBytes] = 0;
             ESP_LOGI(RX_TASK_TAG, "Read %d bytes: '%s'", rxBytes, rx_data);
@@ -180,10 +87,10 @@ static void ultrasonic(void *pvParamters)
                 printf("Error: ");
                 switch (res) {
                     case ESP_ERR_ULTRASONIC_PING:
-                        printf("Cannot ping (device is in invalid state)\n");
+                        ESP_LOGW(TAG2, "Cannot ping (device is in invalid state)\n");
                         break;
                     case ESP_ERR_ULTRASONIC_PING_TIMEOUT:
-                        printf("Ping timeout (no device found)\n");
+                        ESP_LOGW(TAG2, "Ping timeout (no device found)\n");
                         break;
                     case ESP_ERR_ULTRASONIC_ECHO_TIMEOUT:
                         printf("Echo timeout (i.e. distance too big)\n");
@@ -215,7 +122,7 @@ static void ultrasonic(void *pvParamters)
 
  void http_post_task(char *tagID, int gateID)
 {   
-
+    printf("server\n");
     const struct addrinfo hints = {
         .ai_family = AF_INET,
         .ai_socktype = SOCK_STREAM,
@@ -223,7 +130,6 @@ static void ultrasonic(void *pvParamters)
 
     while(1) {
         int err = getaddrinfo(server_infor.web_server, server_infor.web_port, &hints, &res);
-
         if(err != 0 || res == NULL) {
             ESP_LOGE(TAG, "DNS lookup failed err=%d res=%p", err, res);
             vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -258,7 +164,7 @@ static void ultrasonic(void *pvParamters)
         sprintf(request_content, "{\"eTag\":\"%s\",\"gateCode\":\"%d\",\"image\":\"\"}", tagID, gateID);
         printf("%s\n",request_content);
         sprintf(request_msg, "POST /check-in HTTP/1.1\r\n"
-                        "Host: 192.168.290.7:3000\r\n"
+                        "Host: 192.168.190.7:3000\r\n"
                         "Connection: close\r\n"
                         "Content-Type: application/json\r\n"
                         "Content-Length:%d\r\n"
@@ -279,14 +185,10 @@ static void ultrasonic(void *pvParamters)
 
 void app_main(void)
 {
-    ESP_ERROR_CHECK( nvs_flash_init() );
+    ESP_ERROR_CHECK(nvs_flash_init() );
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-    /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
-     * Read "Establishing Wi-Fi or Ethernet Connection" section in
-     * examples/protocols/README.md for more information about this function.
-     */
     gpio_pad_select_gpio (gpio_infor.reader_trigger_pin);
     gpio_set_direction(gpio_infor.reader_trigger_pin, GPIO_MODE_OUTPUT);
     gpio_set_level(gpio_infor.reader_trigger_pin, 1);
@@ -296,8 +198,10 @@ void app_main(void)
     gpio_set_level(gpio_infor.gnd_extend, 0);
 
 
-    ESP_ERROR_CHECK(example_connect());
-    init();
+    ESP_ERROR_CHECK(wifi_connect());
+    // ESP_ERROR_CHECK(example_connect());
+
+    ESP_ERROR_CHECK(init_uart());
     xTaskCreate(&ultrasonic, "ultrasonic", 2048, NULL, 5, NULL);
     xTaskCreate(&rx_task, "rx_task", 1024*2, NULL, 4, NULL);
 
