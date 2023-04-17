@@ -20,23 +20,23 @@ esp_err_t init_uart(void) {
     return ESP_OK;
 }
 
-// int sendData(const char* logName, const char* data)
-// {
-//     const int len = strlen(data);
-//     const int txBytes = uart_write_bytes(UART_NUM_2, data, len);
-//     ESP_LOGI(logName, "Wrote %d bytes", txBytes);
-//     return txBytes;
-// }
+int sendData(const char* logName, const char* data)
+{
+    const int len = strlen(data);
+    const int txBytes = uart_write_bytes(UART_NUM_2, data, len);
+    ESP_LOGI(logName, "Wrote %d bytes", txBytes);
+    return txBytes;
+}
 
-// static void tx_task(void *arg)
-// {
-//     static const char *TX_TASK_TAG = "TX_TASK";
-//     esp_log_level_set(TX_TASK_TAG, ESP_LOG_INFO);
-//     while (1) {
-//         sendData(TX_TASK_TAG, "Hello world\n");
-//         vTaskDelay(2000 / portTICK_PERIOD_MS);
-//     }
-// }
+static void tx_task(void *arg)
+{
+    static const char *TX_TASK_TAG = "TX_TASK";
+    esp_log_level_set(TX_TASK_TAG, ESP_LOG_INFO);
+    while (1) {
+        sendData(TX_TASK_TAG, "Hello world\n");
+        vTaskDelay(2000 / portTICK_PERIOD_MS);
+    }
+}
 
 static void rx_task(void *arg)
 {   
@@ -46,7 +46,7 @@ static void rx_task(void *arg)
     while (1) {
         const int rxBytes = uart_read_bytes(gpio_infor.uart_num, rx_data, RX_BUF_SIZE, 1000 / portTICK_RATE_MS);
         printf("bytes %d, Allow reader %d\n", rxBytes, allow_reader);
-        if (rxBytes > 0 && allow_reader == reader_on) {
+        if (rxBytes > 0 && allow_reader == ON) {
             rx_data[rxBytes] = 0;
             ESP_LOGI(RX_TASK_TAG, "Read %d bytes: '%s'", rxBytes, rx_data);
             ESP_LOG_BUFFER_HEXDUMP(RX_TASK_TAG, rx_data, rxBytes, ESP_LOG_INFO);
@@ -60,8 +60,8 @@ static void rx_task(void *arg)
 
             hexStr[j] = '\0';
             ESP_LOGI(RX_TASK_TAG, "Hexa String: %s", hexStr);
-            http_post_task(hexStr, GATE_ID);
-            allow_reader = reader_off;
+            // http_post_task(hexStr, GATE_ID);
+            allow_reader = OFF;
 
         }
     }
@@ -108,7 +108,7 @@ static void ultrasonic(void *pvParamters)
         avg_distance = avg_distance / 10;
         ESP_LOGE(TAG2, "distance %d", avg_distance);
         if( avg_distance < 20 ){
-            allow_reader = reader_on;
+            allow_reader = ON;
             ESP_LOGI(TAG2, "Average Measurement Distance in %d times: %d cm\n", 10, distance);
             gpio_set_level(gpio_infor.reader_trigger_pin, 0);
             vTaskDelay(1000/portTICK_PERIOD_MS);
@@ -198,13 +198,47 @@ void app_main(void)
     gpio_set_level(gpio_infor.gnd_extend, 0);
 
 
-    ESP_ERROR_CHECK(wifi_connect());
+    // ESP_ERROR_CHECK(wifi_connect());
     // ESP_ERROR_CHECK(wifi_connect());
 
     // ESP_ERROR_CHECK(example_connect());
 
-    ESP_ERROR_CHECK(init_uart());
-    xTaskCreate(&ultrasonic, "ultrasonic", 2048, NULL, 5, NULL);
-    xTaskCreate(&rx_task, "rx_task", 1024*2, NULL, 4, NULL);
+    // ESP_ERROR_CHECK(init_camera());
+    // ESP_ERROR_CHECK(setup_server());
+        
+    esp_err_t err;
 
+    // if (wifi_connect() == ESP_OK)
+    //     {
+    //         err = init_camera();
+    //         if (err != ESP_OK)
+    //         {
+    //             printf("err: %s\n", esp_err_to_name(err));
+    //             return;
+    //         }
+    //         setup_server();
+    //         ESP_LOGI(TAG_CAM, "ESP32 CAM Web Server is up and running\n");
+    //     }
+    //     else
+    //         ESP_LOGI(TAG_CAM, "Failed to connected with Wi-Fi, check your network Credentials\n");
+
+    if (wifi_connect() == ESP_OK)
+    {
+        err = init_camera();
+        if (err != ESP_OK)
+        {
+            printf("err: %s\n", esp_err_to_name(err));
+            return;
+        }
+        ESP_ERROR_CHECK(setup_server());
+        ESP_ERROR_CHECK(init_uart());
+        // xTaskCreate(&tx_task, "tx_task", 2048, NULL, 5, NULL);
+        xTaskCreate(&ultrasonic, "ultrasonic", 2048, NULL, 5, NULL);
+        xTaskCreate(&rx_task, "rx_task", 1024*2, NULL, 4, NULL);
+
+        ESP_LOGI(TAG_CAM, "ESP32 CAM Web Server is up and running\n");
+    }
+    else
+    ESP_LOGI(TAG_CAM, "Failed to connected with Wi-Fi, check your network Credentials\n");
+    
 }

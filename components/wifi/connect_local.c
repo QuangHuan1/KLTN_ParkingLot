@@ -7,27 +7,8 @@
    CONDITIONS OF ANY KIND, either express or implied.
  */
 
-#include <string.h>
-// #include "protocol_examples_common.h"
 #include "protocol_common.h"
-#include "sdkconfig.h"
-#include "esp_event.h"
-#include "esp_wifi.h"
-#include "esp_wifi_default.h"
-#if CONFIG_EXAMPLE_CONNECT_ETHERNET
-#include "esp_eth.h"
-#if CONFIG_ETH_USE_SPI_ETHERNET
-#include "driver/spi_master.h"
-#endif // CONFIG_ETH_USE_SPI_ETHERNET
-#endif // CONFIG_EXAMPLE_CONNECT_ETHERNET
-#include "esp_log.h"
-#include "esp_netif.h"
-#include "driver/gpio.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/event_groups.h"
-#include "lwip/err.h"
-#include "lwip/sys.h"
+
 
 #ifdef CONFIG_EXAMPLE_CONNECT_IPV6
 #define MAX_IP6_ADDRS_PER_NETIF (5)
