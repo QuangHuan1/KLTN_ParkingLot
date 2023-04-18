@@ -1,7 +1,84 @@
 /* 
     KLTN designed by Quyen DQ & Huan TQ
 */
-#include "header.h"
+#include "nvs_flash.h"
+#include "driver/uart.h"
+#include "ultrasonic.h"
+#include "camera_header.h"
+#include "protocol_common.h"
+
+
+#define ESP32
+// #define ESP32CAM
+
+#define GATE_ID 1
+#define MAX_DISTANCE_CM 450 // 5m max // 450
+#define UART_NUM_2  (2) /*!< UART port 2 */
+
+#define OFF 0
+#define ON 1
+
+typedef struct {
+    char *web_server;
+    char *web_port;
+} server;
+
+typedef struct {
+    uart_port_t uart_num;
+    gpio_num_t txd_pin;
+    gpio_num_t rxd_pin;
+    gpio_num_t reader_trigger_pin;
+    gpio_num_t sensor_trigger_pin;
+    gpio_num_t sensor_echo;
+    gpio_num_t gnd_extend;
+} gpio;
+
+
+static const char *TAG = "HTTP POST";
+static const char *TAG2 = "Ultra Sonic";
+
+static const int RX_BUF_SIZE = 1024;
+char request_msg[1024];
+char request_content[512];
+char recv_buf[512];
+char hexStr[512];
+
+
+extern bool allow_reader = OFF;
+extern bool allow_camera = OFF;
+
+struct addrinfo *res;
+struct in_addr *addr;
+int status;
+
+server server_infor = {
+    .web_server = "192.168.190.7",
+    .web_port = "3000",
+};
+
+#ifdef ESP32
+gpio gpio_infor = {
+    .uart_num = UART_NUM_2,
+    .txd_pin = GPIO_NUM_17,
+    .rxd_pin = GPIO_NUM_16,
+    .reader_trigger_pin = GPIO_NUM_33,
+    .sensor_trigger_pin = GPIO_NUM_13,
+    .sensor_echo = GPIO_NUM_11,
+    .gnd_extend = GPIO_NUM_33,
+};
+#endif
+
+#ifdef ESP32CAM
+gpio gpio_infor = {
+    .uart_num = UART_NUM_2,
+    .txd_pin = GPIO_NUM_12,
+    .rxd_pin = GPIO_NUM_13,
+    .reader_trigger_pin = GPIO_NUM_15,
+    .sensor_trigger_pin = GPIO_NUM_14,
+    .sensor_echo = GPIO_NUM_2,
+    .gnd_extend = GPIO_NUM_33,
+};
+#endif
 
 void http_post_task(char *paraA, int paraB);
 esp_err_t init_uart(void) {
@@ -196,32 +273,8 @@ void app_main(void)
     gpio_pad_select_gpio (gpio_infor.gnd_extend);
     gpio_set_direction(gpio_infor.gnd_extend, GPIO_MODE_OUTPUT);
     gpio_set_level(gpio_infor.gnd_extend, 0);
-
-
-    // ESP_ERROR_CHECK(wifi_connect());
-    // ESP_ERROR_CHECK(wifi_connect());
-
-    // ESP_ERROR_CHECK(example_connect());
-
-    // ESP_ERROR_CHECK(init_camera());
-    // ESP_ERROR_CHECK(setup_server());
         
     esp_err_t err;
-
-    // if (wifi_connect() == ESP_OK)
-    //     {
-    //         err = init_camera();
-    //         if (err != ESP_OK)
-    //         {
-    //             printf("err: %s\n", esp_err_to_name(err));
-    //             return;
-    //         }
-    //         setup_server();
-    //         ESP_LOGI(TAG_CAM, "ESP32 CAM Web Server is up and running\n");
-    //     }
-    //     else
-    //         ESP_LOGI(TAG_CAM, "Failed to connected with Wi-Fi, check your network Credentials\n");
-
     if (wifi_connect() == ESP_OK)
     {
         err = init_camera();
