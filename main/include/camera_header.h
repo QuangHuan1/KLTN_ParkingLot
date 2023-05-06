@@ -22,7 +22,6 @@ extern "C" {
 #include "esp_system.h"
 #include "esp_wifi.h"
 
-
 #include "lwip/sockets.h"
 #include "lwip/netdb.h"
 #include "lwip/dns.h"
@@ -57,15 +56,21 @@ extern "C" {
 
 static const char *TAG_CAM = "esp32-cam Webserver";
 
-#define PART_BOUNDARY "123456789000000000000987654321"
-static const char* _STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
-static const char* _STREAM_BOUNDARY = "\r\n--" PART_BOUNDARY "\r\n";
-static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n";
+// #define PART_BOUNDARY "123456789000000000000987654321"
+// static const char* _STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
+// static const char* _STREAM_BOUNDARY = "\r\n--" PART_BOUNDARY "\r\n";
+// static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n";
 
 
 
 esp_err_t init_camera(void);
-httpd_handle_t setup_server(void);
+esp_err_t setup_server(void);
+void http_post_image();
+void jpg_capture();
+
+// void *pvParamters
+// httpd_handle_t setup_server(void);
+
 
 #ifdef __cplusplus
 }
