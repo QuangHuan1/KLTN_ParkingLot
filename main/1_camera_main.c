@@ -1,8 +1,15 @@
-#include "camera_header.h"
+// #include "camera_header.h"
 
-#define OFF 0
-#define ON 1
-extern bool allow_camera;
+#include "header.h"
+
+// #define OFF 0
+// #define ON 1
+// extern bool allow_camera;
+
+const struct addrinfo hints = {
+    .ai_family = AF_INET,
+    .ai_socktype = SOCK_STREAM,
+};
 
 esp_err_t init_camera(void)
 {
@@ -44,206 +51,143 @@ esp_err_t init_camera(void)
 }
 
 
-esp_err_t jpg_httpd_handler(httpd_req_t *req){
+
+
+void http_post_image()
+{   
+
     camera_fb_t * fb = NULL;
-    esp_err_t res = ESP_OK;
-    size_t fb_len = 0;
-    int64_t fr_start = esp_timer_get_time();
 
     fb = esp_camera_fb_get();
     if (!fb) {
         ESP_LOGE(TAG_CAM, "Camera capture failed");
-        httpd_resp_send_500(req);
-        return ESP_FAIL;
     }
-    res = httpd_resp_set_type(req, "image/jpeg");
-    if(res == ESP_OK){
-        res = httpd_resp_set_hdr(req, "Content-Disposition", "inline; filename=capture.jpg");
+    else{
+        ESP_LOGI(TAG_CAM, "Camera capture success!");
     }
 
-    if(res == ESP_OK){
-        fb_len = fb->len;
-        res = httpd_resp_send(req, (const char *)fb->buf, fb->len);
-    }
-
-    esp_camera_fb_return(fb);
-    int64_t fr_end = esp_timer_get_time();
-    ESP_LOGI(TAG_CAM, "JPG: %uKB %ums", (uint32_t)(fb_len/1024), (uint32_t)((fr_end - fr_start)/1000));
-    return res;
-}
-
-esp_err_t jpg_stream_httpd_handler(httpd_req_t *req){
-    camera_fb_t * fb = NULL;
-    esp_err_t res = ESP_OK;
-    size_t _jpg_buf_len;
-    uint8_t * _jpg_buf;
-    char * part_buf[64];
-    static int64_t last_frame = 0;
-    if(!last_frame) {
-        last_frame = esp_timer_get_time();
-    }
-
-    res = httpd_resp_set_type(req, _STREAM_CONTENT_TYPE);
-    if(res != ESP_OK){
-        return res;
-    }
-
-    while(true){
-        fb = esp_camera_fb_get();
-        if (!fb) {
-            ESP_LOGE(TAG_CAM, "Camera capture failed");
-            res = ESP_FAIL;
-            break;
-        }
-        if(fb->format != PIXFORMAT_JPEG){
-            bool jpeg_converted = frame2jpg(fb, 80, &_jpg_buf, &_jpg_buf_len);
-            if(!jpeg_converted){
-                ESP_LOGE(TAG_CAM, "JPEG compression failed");
-                esp_camera_fb_return(fb);
-                res = ESP_FAIL;
-            }
-        } else {
-            _jpg_buf_len = fb->len;
-            _jpg_buf = fb->buf;
+    while(1) {
+        int err = getaddrinfo(server_infor.web_server, server_infor.web_port, &hints, &res);
+        if(err != 0 || res == NULL) {
+            ESP_LOGE(TAG, "DNS lookup failed err=%d res=%p", err, res);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            continue;
         }
 
+        /* Code to print the resolved IP.
+        Note: inet_ntoa is non-reentrant, look at ipaddr_ntoa_r for "real" code */
+        addr = &((struct sockaddr_in *)res->ai_addr)->sin_addr;
+        ESP_LOGI(TAG, "DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
 
-        if(res == ESP_OK){
-            res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
+        status = socket(res->ai_family, res->ai_socktype, 0);
+        if(status < 0) {
+            ESP_LOGE(TAG, "... Failed to allocate socket.");
+            freeaddrinfo(res);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            continue;
+        }
+        ESP_LOGI(TAG, "... allocated socket");
+
+        if(connect(status, res->ai_addr, res->ai_addrlen) != 0) {
+            ESP_LOGE(TAG, "... socket connect failed errno=%d", errno);
+            close(status);
+            freeaddrinfo(res);
+            vTaskDelay(4000 / portTICK_PERIOD_MS);
+            continue;
         }
 
-        if(res == ESP_OK){
-            size_t hlen = snprintf((char *)part_buf, 64, _STREAM_PART, _jpg_buf_len);
+        ESP_LOGI(TAG, "... connected");
+        freeaddrinfo(res);
 
-            res = httpd_resp_send_chunk(req, (const char *)part_buf, hlen);
-        }
-        if(res == ESP_OK){
-            res = httpd_resp_send_chunk(req, (const char *)_jpg_buf, _jpg_buf_len);
-        }
-        if(fb->format != PIXFORMAT_JPEG){
-            free(_jpg_buf);
-        }
-        esp_camera_fb_return(fb);
-        if(res != ESP_OK){
-            break;
-        }
-        int64_t fr_end = esp_timer_get_time();
-        int64_t frame_time = fr_end - last_frame;
-        last_frame = fr_end;
-        frame_time /= 1000;
-        ESP_LOGI(TAG_CAM, "MJPG: %uKB %ums (%.1ffps)",
-            (uint32_t)(_jpg_buf_len/1024),
-            (uint32_t)frame_time, 1000.0 / (uint32_t)frame_time);
+        char HEADER[512];
+        char header[128];
 
-        vTaskDelay(2000/portTICK_PERIOD_MS);
-    }
-
-    last_frame = 0;
-    return res;
-}
-
-esp_err_t jpg_capture(httpd_req_t *req){
-    camera_fb_t * fb = NULL;
-    esp_err_t res = ESP_OK;
-    size_t fb_len = 0;
-    int64_t fr_start = esp_timer_get_time();
-    if(allow_camera == ON){
-        fb = esp_camera_fb_get();
-        if (!fb) {
-            ESP_LOGE(TAG_CAM, "Camera capture failed");
-            httpd_resp_send_500(req);
-            return ESP_FAIL;
-        }
-        res = httpd_resp_set_type(req, "image/jpeg");
-        if(res == ESP_OK){
-            res = httpd_resp_set_hdr(req, "Content-Disposition", "inline; filename=capture.jpg");
-        }
-
-        if(res == ESP_OK){
-            fb_len = fb->len;
-            res = httpd_resp_send(req, (const char *)fb->buf, fb->len);
-        }
-
-        esp_camera_fb_return(fb);
-        int64_t fr_end = esp_timer_get_time();
-        ESP_LOGI(TAG_CAM, "JPG: %uKB %ums", (uint32_t)(fb_len/1024), (uint32_t)((fr_end - fr_start)/1000));
-        allow_camera = OFF;
-    }
-    return res;
-}
-
-httpd_uri_t uri_get = {
-    .uri = "/",
-    .method = HTTP_GET,
-    .handler = jpg_stream_httpd_handler,
-    .user_ctx = NULL
-};
-
-httpd_uri_t jpeg_uri = {
-        .uri = "/jpeg",
-        .method = HTTP_GET,
-        .handler = jpg_httpd_handler,
-        .user_ctx = NULL
-};
-
-// httpd_handle_t setup_server(void)
-// {
-//     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-//     httpd_handle_t stream_httpd  = NULL;
-
-//     if (httpd_start(&stream_httpd , &config) == ESP_OK)
-//     {
-//         httpd_register_uri_handler(stream_httpd , &uri_get);
-//     }
-
-//     return stream_httpd;
-// }
-
-httpd_handle_t setup_server(void)
-{
-    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    httpd_handle_t stream_httpd  = NULL;
-
-    if (httpd_start(&stream_httpd , &config) == ESP_OK)
-    {
-        httpd_register_uri_handler(stream_httpd , &jpeg_uri);
-    }
-
-    return stream_httpd;
-}
-
-// void app_main()
-// {
-//     esp_err_t err;
-
-//     // Initialize NVS
-//     ESP_ERROR_CHECK(nvs_flash_init() );
-//     ESP_ERROR_CHECK(esp_netif_init());
-//     ESP_ERROR_CHECK(esp_event_loop_create_default());
+        sprintf(header, "POST %s HTTP/1.1\r\n", server_infor.web_path);
+        strcpy(HEADER, header);
+        sprintf(header, "Host: %s:%s\r\n",  server_infor.web_server, server_infor.web_port);
+        strcat(HEADER, header);
+        sprintf(header, "User-Agent: esp-idf/%d.%d.%d esp32\r\n", ESP_IDF_VERSION_MAJOR, ESP_IDF_VERSION_MINOR, ESP_IDF_VERSION_PATCH);
+        strcat(HEADER, header);
+        sprintf(header, "Accept: */*\r\n");
+        strcat(HEADER, header);
+        sprintf(header, "Content-Type: multipart/form-data; boundary=%s\r\n", BOUNDARY);
+        strcat(HEADER, header);
     
-//     esp_err_t ret = nvs_flash_init();
-//     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
-//     {
-//         ESP_ERROR_CHECK(nvs_flash_erase());
-//         ret = nvs_flash_init();
-//     }
+        char BODY[512];
+        sprintf(header, "--%s\r\n", BOUNDARY);
+        strcpy(BODY, header);
+        sprintf(header, "Content-Disposition: form-data; name=\"image\"; filename=\"image.jpg\"\r\n");
+        strcat(BODY, header);
+        sprintf(header, "Content-Type: image/jpeg\r\n\r\n");
+        strcat(BODY, header);
 
-//     // connect_wifi();
-//     // printf("Begin connect to wifi\n");
-//     // ESP_ERROR_CHECK(wifi_connect());
-//     // printf("succes connect to wifi\n");
+        char END[128];
+        sprintf(header, "\r\n--%s--\r\n\r\n", BOUNDARY);
+        strcpy(END, header);
+        
+        int dataLength = strlen(BODY) + strlen(END) +  fb->len;
+        sprintf(header, "Content-Length: %d\r\n\r\n", dataLength);
+        strcat(HEADER, header);
 
-//     if (wifi_connect() == ESP_OK)
-//     {
-//         err = init_camera();
-//         if (err != ESP_OK)
-//         {
-//             printf("err: %s\n", esp_err_to_name(err));
-//             return;
-//         }
-//         setup_server();
-//         ESP_LOGI(TAG_CAM, "ESP32 CAM Web Server is up and running\n");
-//     }
-//     else
-//         ESP_LOGI(TAG_CAM, "Failed to connected with Wi-Fi, check your network Credentials\n");
-// }
+        ESP_LOGD(TAG, "[%s]", HEADER);
+        if (write(status, HEADER, strlen(HEADER)) < 0) {
+            ESP_LOGE(TAG, "... socket1 send failed");
+            close(status);
+            vTaskDelay(4000 / portTICK_PERIOD_MS);
+            continue;
+        }
+        ESP_LOGI(TAG, "HEADER socket1 send success");
+
+        ESP_LOGD(TAG, "[%s]", BODY);
+        if (write(status, BODY, strlen(BODY)) < 0) {
+            ESP_LOGE(TAG, "... socket2 send failed");
+            close(status);
+            vTaskDelay(4000 / portTICK_PERIOD_MS);
+            continue;
+        }
+        ESP_LOGI(TAG, "BODY socket2 send success");
+
+        
+
+        uint8_t *fbBuf = fb->buf;
+        size_t fbLen = fb->len;
+
+        if (write(status,(const char *)fb->buf, fbLen) < 0) {
+            ESP_LOGE(TAG, "... socket3 send failed");
+            close(status);
+            vTaskDelay(4000 / portTICK_PERIOD_MS);
+            continue;
+        }
+
+        ESP_LOGI(TAG, "DATA socket3 send success");
+
+        if (write(status, END, strlen(END)) < 0) {
+            ESP_LOGE(TAG, "... socket6 send failed");
+            close(status);
+            vTaskDelay(4000 / portTICK_PERIOD_MS);
+            continue;
+        }
+        ESP_LOGI(TAG, "END socket7 send success");
+        esp_camera_fb_return(fb);
+
+        ESP_LOGI(TAG, "Starting again!");
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
+        close(status);
+        break;
+    }
+}
+
+
+void jpg_capture(){
+    while(1){
+        if(allow_camera == ON){
+            http_post_image();
+            allow_camera = OFF;
+        }
+        ESP_LOGE(TAG_CAM, "Vehicle Not Detected!");
+        vTaskDelay(2000 / portTICK_PERIOD_MS);
+
+    }
+}
+
+

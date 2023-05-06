@@ -1,60 +1,18 @@
 /* 
     KLTN designed by Quyen DQ & Huan TQ
 */
-#include "nvs_flash.h"
-#include "driver/uart.h"
-#include "ultrasonic.h"
-#include "camera_header.h"
-#include "protocol_common.h"
-
-
-#define ESP32
-// #define ESP32CAM
-
-#define GATE_ID 1
-#define MAX_DISTANCE_CM 450 // 5m max // 450
-#define UART_NUM_2  (2) /*!< UART port 2 */
-
-#define OFF 0
-#define ON 1
-
-typedef struct {
-    char *web_server;
-    char *web_port;
-} server;
-
-typedef struct {
-    uart_port_t uart_num;
-    gpio_num_t txd_pin;
-    gpio_num_t rxd_pin;
-    gpio_num_t reader_trigger_pin;
-    gpio_num_t sensor_trigger_pin;
-    gpio_num_t sensor_echo;
-    gpio_num_t gnd_extend;
-} gpio;
-
-
-static const char *TAG = "HTTP POST";
-static const char *TAG2 = "Ultra Sonic";
-
-static const int RX_BUF_SIZE = 1024;
-char request_msg[1024];
-char request_content[512];
-char recv_buf[512];
-char hexStr[512];
-
-
-extern bool allow_reader = OFF;
-extern bool allow_camera = OFF;
-
-struct addrinfo *res;
-struct in_addr *addr;
-int status;
+#include "header.h"
 
 server server_infor = {
-    .web_server = "192.168.190.7",
+    .web_server = "192.168.91.7",
     .web_port = "3000",
+    .web_path = "/check-in-out-image/check-in"
 };
+
+bool allow_reader = OFF;
+bool allow_camera = OFF;
+
+uint8_t isCarCnt = 0;
 
 #ifdef ESP32
 gpio gpio_infor = {
@@ -70,13 +28,23 @@ gpio gpio_infor = {
 
 #ifdef ESP32CAM
 gpio gpio_infor = {
+    .uart_num = UART_NUM_0,
+    .txd_pin = GPIO_NUM_1,
+    .rxd_pin = GPIO_NUM_3,
+    .reader_trigger_pin = GPIO_NUM_12,
+    .sensor_trigger_pin = GPIO_NUM_13,
+    .sensor_echo = GPIO_NUM_15,
+    .gnd_extend = GPIO_NUM_4,
+};
+
+gpio gpio_infor1 = {
     .uart_num = UART_NUM_2,
-    .txd_pin = GPIO_NUM_12,
-    .rxd_pin = GPIO_NUM_13,
-    .reader_trigger_pin = GPIO_NUM_15,
-    .sensor_trigger_pin = GPIO_NUM_14,
-    .sensor_echo = GPIO_NUM_2,
-    .gnd_extend = GPIO_NUM_33,
+    .txd_pin = GPIO_NUM_1,
+    .rxd_pin = GPIO_NUM_3,
+    .reader_trigger_pin = GPIO_NUM_12,
+    .sensor_trigger_pin = GPIO_NUM_13,
+    .sensor_echo = GPIO_NUM_15,
+    .gnd_extend = GPIO_NUM_4,
 };
 #endif
 
@@ -122,7 +90,7 @@ static void rx_task(void *arg)
     uint8_t* rx_data = (uint8_t*) malloc(RX_BUF_SIZE+1);
     while (1) {
         const int rxBytes = uart_read_bytes(gpio_infor.uart_num, rx_data, RX_BUF_SIZE, 1000 / portTICK_RATE_MS);
-        printf("bytes %d, Allow reader %d\n", rxBytes, allow_reader);
+        // printf("bytes %d, Allow reader %d\n", rxBytes, allow_reader);
         if (rxBytes > 0 && allow_reader == ON) {
             rx_data[rxBytes] = 0;
             ESP_LOGI(RX_TASK_TAG, "Read %d bytes: '%s'", rxBytes, rx_data);
@@ -183,21 +151,30 @@ static void ultrasonic(void *pvParamters)
         }
 
         avg_distance = avg_distance / 10;
-        ESP_LOGE(TAG2, "distance %d", avg_distance);
-        if( avg_distance < 20 ){
-            allow_reader = ON;
-            ESP_LOGI(TAG2, "Average Measurement Distance in %d times: %d cm\n", 10, distance);
-            gpio_set_level(gpio_infor.reader_trigger_pin, 0);
-            vTaskDelay(1000/portTICK_PERIOD_MS);
-            gpio_set_level(gpio_infor.reader_trigger_pin, 1);
+        
+        ESP_LOGE(TAG2, "distance = %d and carCounter = %d\n", avg_distance, isCarCnt);
+        if( avg_distance < 80){
+            isCarCnt++;
+            if (isCarCnt == 5){
+                isCarCnt = 0;
+                allow_camera = ON;
+                allow_reader = ON;
 
+                ESP_LOGI(TAG2, "Average Measurement Distance in %d times: %d cm\n", 10, distance);
+                gpio_set_level(gpio_infor.reader_trigger_pin, 0);
+                vTaskDelay(1000/portTICK_PERIOD_MS);
+                gpio_set_level(gpio_infor.reader_trigger_pin, 1);
+            }
+        }
+        else{
+            isCarCnt = 0;
         }
         vTaskDelay(2000 / portTICK_PERIOD_MS);
 	}
 }
 
 
- void http_post_task(char *tagID, int gateID)
+void http_post_task(char *tagID, int gateID)
 {   
     printf("server\n");
     const struct addrinfo hints = {
@@ -241,7 +218,7 @@ static void ultrasonic(void *pvParamters)
         sprintf(request_content, "{\"eTag\":\"%s\",\"gateCode\":\"%d\",\"image\":\"\"}", tagID, gateID);
         printf("%s\n",request_content);
         sprintf(request_msg, "POST /check-in HTTP/1.1\r\n"
-                        "Host: 192.168.190.7:3000\r\n"
+                        "Host: 192.168.91.7:3000\r\n"
                         "Connection: close\r\n"
                         "Content-Type: application/json\r\n"
                         "Content-Length:%d\r\n"
@@ -260,6 +237,9 @@ static void ultrasonic(void *pvParamters)
     }
 }
 
+
+
+
 void app_main(void)
 {
     ESP_ERROR_CHECK(nvs_flash_init() );
@@ -277,18 +257,27 @@ void app_main(void)
     esp_err_t err;
     if (wifi_connect() == ESP_OK)
     {
+        
         err = init_camera();
         if (err != ESP_OK)
         {
             printf("err: %s\n", esp_err_to_name(err));
             return;
         }
-        ESP_ERROR_CHECK(setup_server());
+
+        // ESP_ERROR_CHECK(setup_server());
         ESP_ERROR_CHECK(init_uart());
         // xTaskCreate(&tx_task, "tx_task", 2048, NULL, 5, NULL);
+
         xTaskCreate(&ultrasonic, "ultrasonic", 2048, NULL, 5, NULL);
         xTaskCreate(&rx_task, "rx_task", 1024*2, NULL, 4, NULL);
+        xTaskCreate(&jpg_capture, "jpg_capture", 1024*3, NULL, 3, NULL);
 
+        // xTaskCreate(&http_post_image, "http_post_image", 2048*2, NULL, 3, NULL);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
+
+
+    
         ESP_LOGI(TAG_CAM, "ESP32 CAM Web Server is up and running\n");
     }
     else

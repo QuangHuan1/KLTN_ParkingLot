@@ -24,8 +24,7 @@ extern "C" {
 /**
  * Device descriptor
  */
-typedef struct
-{
+typedef struct {
     gpio_num_t trigger_pin;
     gpio_num_t echo_pin;
 } ultrasonic_sensor_t;

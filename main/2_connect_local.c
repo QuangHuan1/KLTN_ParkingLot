@@ -7,7 +7,8 @@
    CONDITIONS OF ANY KIND, either express or implied.
  */
 
-#include "protocol_common.h"
+// #include "protocol_common.h"
+#include "header.h"
 
 
 static int s_active_interfaces = 0;
@@ -28,7 +29,7 @@ static const char *s_ipv6_addr_types[] = {
 };
 #endif
 
-static const char *TAG = "example_connect";
+static const char *TAG_Wifi = "Wifi Connect...";
 
 #if CONFIG_EXAMPLE_CONNECT_WIFI
 static esp_netif_t *wifi_start(void);
