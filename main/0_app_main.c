@@ -48,7 +48,7 @@ gpio gpio_infor1 = {
 };
 #endif
 
-void http_post_task(char *paraA, int paraB);
+void http_post_task(char *paraA);
 esp_err_t init_uart(void) {
     const uart_config_t uart_config = {
         .baud_rate = 115200,
@@ -105,7 +105,7 @@ static void rx_task(void *arg)
 
             hexStr[j] = '\0';
             ESP_LOGI(RX_TASK_TAG, "Hexa String: %s", hexStr);
-            // http_post_task(hexStr, GATE_ID);
+            http_post_task(hexStr);
             allow_reader = OFF;
 
         }
@@ -120,6 +120,7 @@ static void ultrasonic(void *pvParamters)
 		.trigger_pin = gpio_infor.sensor_trigger_pin,
 		.echo_pin = gpio_infor.sensor_echo,
 	};
+
 
 	ultrasonic_init(&sensor);
     uint32_t distance = 0;
@@ -160,6 +161,11 @@ static void ultrasonic(void *pvParamters)
                 allow_camera = ON;
                 allow_reader = ON;
 
+                Set_SystemTime_SNTP();
+                Get_current_date_time(Current_Date_Time, Current_Date_Time_Raw);
+                printf("current date and time is = %s ---- %s\n",Current_Date_Time, Current_Date_Time_Raw);
+
+
                 ESP_LOGI(TAG2, "Average Measurement Distance in %d times: %d cm\n", 10, distance);
                 gpio_set_level(gpio_infor.reader_trigger_pin, 0);
                 vTaskDelay(1000/portTICK_PERIOD_MS);
@@ -174,7 +180,7 @@ static void ultrasonic(void *pvParamters)
 }
 
 
-void http_post_task(char *tagID, int gateID)
+void http_post_task(char *tagID)
 {   
     printf("server\n");
     const struct addrinfo hints = {
@@ -215,7 +221,7 @@ void http_post_task(char *tagID, int gateID)
         ESP_LOGI(TAG, "... connected");
         freeaddrinfo(res);
 
-        sprintf(request_content, "{\"eTag\":\"%s\",\"gateCode\":\"%d\",\"image\":\"\"}", tagID, gateID);
+        sprintf(request_content, "{\"eTag\":\"%s\",\"checkinTime\":\"%s\",\"gateCode\":\"%s\",\"areaCode\":\"%s\",\"imageCode\":\"%s\"}", tagID, Current_Date_Time_Raw, gateCode, areaCode, Current_Date_Time);
         printf("%s\n",request_content);
         sprintf(request_msg, "POST /check-in HTTP/1.1\r\n"
                         "Host: 192.168.91.7:3000\r\n"
@@ -238,8 +244,6 @@ void http_post_task(char *tagID, int gateID)
 }
 
 
-
-
 void app_main(void)
 {
     ESP_ERROR_CHECK(nvs_flash_init() );
@@ -253,7 +257,10 @@ void app_main(void)
     gpio_pad_select_gpio (gpio_infor.gnd_extend);
     gpio_set_direction(gpio_infor.gnd_extend, GPIO_MODE_OUTPUT);
     gpio_set_level(gpio_infor.gnd_extend, 0);
-        
+    
+    // wifi_init_sta();
+
+    
     esp_err_t err;
     if (wifi_connect() == ESP_OK)
     {
@@ -268,10 +275,10 @@ void app_main(void)
         // ESP_ERROR_CHECK(setup_server());
         ESP_ERROR_CHECK(init_uart());
         // xTaskCreate(&tx_task, "tx_task", 2048, NULL, 5, NULL);
-
-        xTaskCreate(&ultrasonic, "ultrasonic", 2048, NULL, 5, NULL);
+    
+        xTaskCreate(&ultrasonic, "ultrasonic", 2048, NULL, 3, NULL);
         xTaskCreate(&rx_task, "rx_task", 1024*2, NULL, 4, NULL);
-        xTaskCreate(&jpg_capture, "jpg_capture", 1024*3, NULL, 3, NULL);
+        xTaskCreate(&jpg_capture, "jpg_capture", 1024*4, NULL, 5, NULL);
 
         // xTaskCreate(&http_post_image, "http_post_image", 2048*2, NULL, 3, NULL);
         vTaskDelay(5000 / portTICK_PERIOD_MS);

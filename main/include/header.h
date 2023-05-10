@@ -3,12 +3,14 @@
 #include "ultrasonic.h"
 #include "camera_header.h"
 #include "protocol_common.h"
-
+#include "datetime.h"
 
 // #define ESP32
 #define ESP32CAM
 
-#define GATE_ID 1
+#define gateCode "MC00"
+#define areaCode "MK00"
+
 #define MAX_DISTANCE_CM 450 // 5m max // 450
 #define UART_NUM_2  (2) /*!< UART port 2 */
 #define BOUNDARY "X-ESPIDF_MULTIPART"
@@ -40,7 +42,7 @@ static const int RX_BUF_SIZE = 1024;
 char request_msg[1024];
 char request_content[512];
 char recv_buf[512];
-char hexStr[512];
+char hexStr[128];
 uint8_t carCounter;
 
 

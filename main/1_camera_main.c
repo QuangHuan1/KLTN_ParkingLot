@@ -100,7 +100,7 @@ void http_post_image()
         freeaddrinfo(res);
 
         char HEADER[512];
-        char header[128];
+        char header[512];
 
         sprintf(header, "POST %s HTTP/1.1\r\n", server_infor.web_path);
         strcpy(HEADER, header);
@@ -116,7 +116,7 @@ void http_post_image()
         char BODY[512];
         sprintf(header, "--%s\r\n", BOUNDARY);
         strcpy(BODY, header);
-        sprintf(header, "Content-Disposition: form-data; name=\"image\"; filename=\"image.jpg\"\r\n");
+        sprintf(header, "Content-Disposition: form-data; name=\"image\"; filename=\"%s.jpg\"\r\n", Current_Date_Time);
         strcat(BODY, header);
         sprintf(header, "Content-Type: image/jpeg\r\n\r\n");
         strcat(BODY, header);
