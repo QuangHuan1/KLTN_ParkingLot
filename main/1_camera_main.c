@@ -1,10 +1,4 @@
-// #include "camera_header.h"
-
 #include "header.h"
-
-// #define OFF 0
-// #define ON 1
-// extern bool allow_camera;
 
 const struct addrinfo hints = {
     .ai_family = AF_INET,
@@ -51,8 +45,6 @@ esp_err_t init_camera(void)
 }
 
 
-
-
 void http_post_image()
 {   
 
@@ -69,7 +61,7 @@ void http_post_image()
     while(1) {
         int err = getaddrinfo(server_infor.web_server, server_infor.web_port, &hints, &res);
         if(err != 0 || res == NULL) {
-            ESP_LOGE(TAG, "DNS lookup failed err=%d res=%p", err, res);
+            ESP_LOGE(TAG_CAM, "DNS lookup failed err=%d res=%p", err, res);
             vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;
         }
@@ -77,26 +69,26 @@ void http_post_image()
         /* Code to print the resolved IP.
         Note: inet_ntoa is non-reentrant, look at ipaddr_ntoa_r for "real" code */
         addr = &((struct sockaddr_in *)res->ai_addr)->sin_addr;
-        ESP_LOGI(TAG, "DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
+        ESP_LOGI(TAG_CAM, "DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
 
         status = socket(res->ai_family, res->ai_socktype, 0);
         if(status < 0) {
-            ESP_LOGE(TAG, "... Failed to allocate socket.");
+            ESP_LOGE(TAG_CAM, "... Failed to allocate socket.");
             freeaddrinfo(res);
             vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;
         }
-        ESP_LOGI(TAG, "... allocated socket");
+        ESP_LOGI(TAG_CAM, "... allocated socket");
 
         if(connect(status, res->ai_addr, res->ai_addrlen) != 0) {
-            ESP_LOGE(TAG, "... socket connect failed errno=%d", errno);
+            ESP_LOGE(TAG_CAM, "... socket connect failed errno=%d", errno);
             close(status);
             freeaddrinfo(res);
             vTaskDelay(4000 / portTICK_PERIOD_MS);
             continue;
         }
 
-        ESP_LOGI(TAG, "... connected");
+        ESP_LOGI(TAG_CAM, "... connected");
         freeaddrinfo(res);
 
         char HEADER[512];
@@ -129,23 +121,21 @@ void http_post_image()
         sprintf(header, "Content-Length: %d\r\n\r\n", dataLength);
         strcat(HEADER, header);
 
-        ESP_LOGD(TAG, "[%s]", HEADER);
+        ESP_LOGD(TAG_CAM, "[%s]", HEADER);
         if (write(status, HEADER, strlen(HEADER)) < 0) {
-            ESP_LOGE(TAG, "... socket1 send failed");
+            ESP_LOGE(TAG_CAM, "... socket1 send failed");
             close(status);
             vTaskDelay(4000 / portTICK_PERIOD_MS);
             continue;
         }
-        ESP_LOGI(TAG, "HEADER socket1 send success");
 
-        ESP_LOGD(TAG, "[%s]", BODY);
+        ESP_LOGD(TAG_CAM, "[%s]", BODY);
         if (write(status, BODY, strlen(BODY)) < 0) {
-            ESP_LOGE(TAG, "... socket2 send failed");
+            ESP_LOGE(TAG_CAM, "... socket2 send failed");
             close(status);
             vTaskDelay(4000 / portTICK_PERIOD_MS);
             continue;
         }
-        ESP_LOGI(TAG, "BODY socket2 send success");
 
         
 
@@ -153,25 +143,22 @@ void http_post_image()
         size_t fbLen = fb->len;
 
         if (write(status,(const char *)fb->buf, fbLen) < 0) {
-            ESP_LOGE(TAG, "... socket3 send failed");
+            ESP_LOGE(TAG_CAM, "... socket3 send failed");
             close(status);
             vTaskDelay(4000 / portTICK_PERIOD_MS);
             continue;
         }
-
-        ESP_LOGI(TAG, "DATA socket3 send success");
 
         if (write(status, END, strlen(END)) < 0) {
-            ESP_LOGE(TAG, "... socket6 send failed");
+            ESP_LOGE(TAG_CAM, "... socket6 send failed");
             close(status);
             vTaskDelay(4000 / portTICK_PERIOD_MS);
             continue;
         }
-        ESP_LOGI(TAG, "END socket7 send success");
         esp_camera_fb_return(fb);
 
-        ESP_LOGI(TAG, "Starting again!");
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
+        ESP_LOGI(TAG_CAM, "Starting again!");
+        vTaskDelay(2000 / portTICK_PERIOD_MS);
         close(status);
         break;
     }
@@ -186,7 +173,6 @@ void jpg_capture(){
         }
         ESP_LOGE(TAG_CAM, "Vehicle Not Detected!");
         vTaskDelay(2000 / portTICK_PERIOD_MS);
-
     }
 }
 

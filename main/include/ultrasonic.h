@@ -43,6 +43,9 @@ void ultrasonic_init(const ultrasonic_sensor_t *dev);
  */
 esp_err_t ultrasonic_measure_cm(const ultrasonic_sensor_t *dev, uint32_t max_distance, uint32_t *distance);
 
+
+void ultrasonic(void *pvParamters);
+
 #ifdef __cplusplus
 }
 #endif

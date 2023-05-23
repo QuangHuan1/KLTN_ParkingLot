@@ -32,8 +32,8 @@ static EventGroupHandle_t s_wifi_event_group;
 #define WIFI_FAIL_BIT      BIT1
 static const char *TAG_DATE = "wifi station";
 
-char Current_Date_Time[100];
-char Current_Date_Time_Raw[100];
+char Current_Date_Time[50];
+char Current_Date_Time_Raw[50];
 
 
 void time_sync_notification_cb(struct timeval *tv);
@@ -41,6 +41,11 @@ static void event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data);
 void wifi_init_sta(void);
 void Get_current_date_time(char *date_time, char *date_time_raw);
-static void initialize_sntp(void);
-static void obtain_time(void);
- void Set_SystemTime_SNTP();
+void initialize_sntp(void);
+void obtain_time(void);
+void Set_SystemTime_SNTP();
+
+void rx_task(void *arg);
+esp_err_t init_uart(void);
+
+

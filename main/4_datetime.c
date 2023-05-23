@@ -133,7 +133,7 @@ void Get_current_date_time(char *date_time, char *date_time_raw){
 }
 
 
-static void initialize_sntp(void)
+void initialize_sntp(void)
 {
     ESP_LOGI(TAG_DATE, "Initializing SNTP");
     sntp_setoperatingmode(SNTP_OPMODE_POLL);
@@ -144,7 +144,7 @@ static void initialize_sntp(void)
 #endif
     sntp_init();
 }
-static void obtain_time(void)
+void obtain_time(void)
 {
 
 
@@ -175,30 +175,3 @@ static void obtain_time(void)
 	        time(&now);
 	    }
 }
-// void app_main(void)     {
-
-// 	//Initialize NVS
-//     esp_err_t ret = nvs_flash_init();
-//     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-//       ESP_ERROR_CHECK(nvs_flash_erase());
-//       ret = nvs_flash_init();
-//     }
-//     ESP_ERROR_CHECK(ret);
-
-//     ESP_LOGI(TAG_DATE, "ESP_WIFI_MODE_STA");
-//     wifi_init_sta();
-
-
-//     Set_SystemTime_SNTP();
-
-
-
-// while(1)  {
-
-		// Get_current_date_time(Current_Date_Time);
-// 		printf("current date and time is = %s\n",Current_Date_Time);
-// 		vTaskDelay(1000 / portTICK_PERIOD_MS);
-// }
-
-
-// }
