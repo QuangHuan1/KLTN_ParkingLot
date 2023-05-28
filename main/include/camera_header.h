@@ -54,7 +54,7 @@ extern "C" {
 #define CAM_PIN_HREF 23
 #define CAM_PIN_PCLK 22
 
-static const char *TAG_CAM = "esp32-cam Webserver";
+static const char *TAG_CAM = "CAMERA";
 
 // #define PART_BOUNDARY "123456789000000000000987654321"
 // static const char* _STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
@@ -67,9 +67,6 @@ esp_err_t init_camera(void);
 esp_err_t setup_server(void);
 void http_post_image();
 void jpg_capture();
-
-// void *pvParamters
-// httpd_handle_t setup_server(void);
 
 
 #ifdef __cplusplus

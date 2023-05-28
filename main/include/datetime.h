@@ -23,23 +23,25 @@
 #define EXAMPLE_ESP_WIFI_SSID      "toh8hc"
 #define EXAMPLE_ESP_WIFI_PASS      "24102001"
 
-static EventGroupHandle_t s_wifi_event_group;
+// static EventGroupHandle_t s_wifi_event_group;
 
 /* The event group allows multiple bits for each event, but we only care about two events:
  * - we are connected to the AP with an IP
  * - we failed to connect after the maximum amount of retries */
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
-static const char *TAG_DATE = "wifi station";
+static const char *TAG_DATE = "FROM DATETIME";
 
 char Current_Date_Time[50];
 char Current_Date_Time_Raw[50];
 
 
-void time_sync_notification_cb(struct timeval *tv);
-static void event_handler(void* arg, esp_event_base_t event_base,
-                                int32_t event_id, void* event_data);
-void wifi_init_sta(void);
+// void time_sync_notification_cb(struct timeval *tv);
+// static void event_handler(void* arg, esp_event_base_t event_base,
+//                                 int32_t event_id, void* event_data);
+// void wifi_init_sta(void);
+
+
 void Get_current_date_time(char *date_time, char *date_time_raw);
 void initialize_sntp(void);
 void obtain_time(void);

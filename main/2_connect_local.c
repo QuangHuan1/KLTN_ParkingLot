@@ -29,8 +29,6 @@ static const char *s_ipv6_addr_types[] = {
 };
 #endif
 
-static const char *TAG_Wifi = "Wifi Connect...";
-
 #if CONFIG_EXAMPLE_CONNECT_WIFI
 static esp_netif_t *wifi_start(void);
 static void wifi_stop(void);

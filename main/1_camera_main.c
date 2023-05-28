@@ -45,18 +45,18 @@ esp_err_t init_camera(void)
 }
 
 
-void http_post_image()
+void http_post_image(camera_fb_t *fb)
 {   
 
-    camera_fb_t * fb = NULL;
+    // camera_fb_t * fb = NULL;
 
-    fb = esp_camera_fb_get();
-    if (!fb) {
-        ESP_LOGE(TAG_CAM, "Camera capture failed");
-    }
-    else{
-        ESP_LOGI(TAG_CAM, "Camera capture success!");
-    }
+    // fb = esp_camera_fb_get();
+    // if (!fb) {
+    //     ESP_LOGE(TAG_CAM, "Camera capture failed");
+    // }
+    // else{
+    //     ESP_LOGI(TAG_CAM, "Camera capture success!");
+    // }
 
     while(1) {
         int err = getaddrinfo(server_infor.web_server, server_infor.web_port, &hints, &res);
@@ -137,11 +137,7 @@ void http_post_image()
             continue;
         }
 
-        
-
-        uint8_t *fbBuf = fb->buf;
         size_t fbLen = fb->len;
-
         if (write(status,(const char *)fb->buf, fbLen) < 0) {
             ESP_LOGE(TAG_CAM, "... socket3 send failed");
             close(status);
@@ -155,7 +151,7 @@ void http_post_image()
             vTaskDelay(4000 / portTICK_PERIOD_MS);
             continue;
         }
-        esp_camera_fb_return(fb);
+        // esp_camera_fb_return(fb);
 
         ESP_LOGI(TAG_CAM, "Starting again!");
         vTaskDelay(2000 / portTICK_PERIOD_MS);
@@ -167,8 +163,23 @@ void http_post_image()
 
 void jpg_capture(){
     while(1){
-        if(allow_camera == ON){
-            http_post_image();
+        // condition for checkin/out state?
+        if(allow_camera == ON ){
+            camera_fb_t * fb = NULL;
+
+            fb = esp_camera_fb_get();
+            if (!fb) {
+                ESP_LOGE(TAG_CAM, "Camera capture failed");
+            }
+            else{
+                ESP_LOGI(TAG_CAM, "Camera capture success!");
+            }
+
+            if(checkin_state == DONE_CHECKIN){
+                http_post_image(fb);
+            }
+            esp_camera_fb_return(fb);
+
             allow_camera = OFF;
         }
         ESP_LOGE(TAG_CAM, "Vehicle Not Detected!");

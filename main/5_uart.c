@@ -56,11 +56,21 @@ void rx_task(void *arg)
             }
 
             hexStr[j] = '\0';
-            ESP_LOGI(RX_TASK_TAG, "Hexa String: %s", hexStr);
-            if(car_entry == 2){
-                http_post_task(hexStr);
-                car_entry = 0;
-            }
+            ESP_LOGI(RX_TASK_TAG, "-------Hexa String: %s", hexStr);
+            // if(car_entry == 2){
+            //     http_post_task(hexStr);
+            //     car_entry = 0;
+            // }
+
+            // if (checkin_state == DONE_CHECKIN){
+            //     http_post_task(hexStr);
+            //     checkin_state = NO_CHECKIN;
+            // }
+
+            // if (checkout_state == DONE_CHECKOUT){
+            //     http_post_task(hexStr);
+            //     checkout_state = NO_CHECKOUT;
+            // }
             allow_reader = OFF;
 
         }

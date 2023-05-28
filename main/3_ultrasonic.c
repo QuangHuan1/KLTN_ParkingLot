@@ -85,6 +85,102 @@ esp_err_t ultrasonic_measure_cm(const ultrasonic_sensor_t *dev, uint32_t max_dis
     return ESP_OK;
 }
 
+// void ultrasonic(void *pvParamters)
+// {
+// 	ultrasonic_sensor_t sensor_front = {
+// 		.trigger_pin = sensor0.sensor_trigger_pin,
+// 		.echo_pin = sensor0.sensor_echo_pin,
+// 	};
+
+//     ultrasonic_sensor_t sensor_rear = {
+// 		.trigger_pin = sensor1.sensor_trigger_pin,
+// 		.echo_pin = sensor1.sensor_echo_pin,
+// 	};
+
+
+// 	ultrasonic_init(&sensor_front);
+// 	ultrasonic_init(&sensor_rear);
+
+//     uint32_t distance_front = 0;
+//     uint32_t distance_rear = 0;
+//     // uint32_t distance = 0;
+
+//     checkin_state = NO_CHECKIN;
+//     checkout_state = NO_CHECKOUT;
+    
+// 	while (true) {
+//         int index_loop = 1;
+
+//         while (index_loop <= 10)
+//         {
+//             esp_err_t ret_snsFront = ultrasonic_measure_cm(&sensor_front, MAX_DISTANCE_CM, &distance_front);
+//             vTaskDelay(100 / portTICK_PERIOD_MS);
+//             esp_err_t ret_snsRear = ultrasonic_measure_cm(&sensor_rear, MAX_DISTANCE_CM, &distance_rear);
+
+//             // No both sensor triggerd
+//             if(ret_snsFront != ESP_OK && ret_snsRear != ESP_OK){
+//                 checkin_state = NO_CHECKIN;
+//                 checkout_state = NO_CHECKOUT;
+//                 break;
+//             } else {
+//                 if(distance_front <= LIMIT_DISTANCE_CM && distance_rear > LIMIT_DISTANCE_CM){
+//                     if(checkin_state == NO_CHECKIN){
+//                         checkin_state = SHALL_CHECKIN;
+//                     }
+//                     if(checkout_state == PREP_CHECKOUT){
+//                         checkout_state = DONE_CHECKOUT;
+//                     }
+//                 } 
+//                 else if(distance_front <= LIMIT_DISTANCE_CM && distance_rear <= LIMIT_DISTANCE_CM){
+//                     if(checkin_state == SHALL_CHECKIN){
+//                         checkin_state = PREP_CHECKIN;
+//                     }
+//                     if(checkout_state == SHALL_CHECKOUT){
+//                         checkout_state = PREP_CHECKOUT;
+//                     }
+//                 }
+//                 else if (distance_front > LIMIT_DISTANCE_CM && distance_rear <= LIMIT_DISTANCE_CM){
+//                     if(checkin_state == PREP_CHECKIN){
+//                         checkin_state = DONE_CHECKIN;
+//                     }
+//                     if(checkout_state == NO_CHECKOUT){
+//                         checkout_state = SHALL_CHECKOUT;
+//                     }
+//                 }
+//                 else {
+//                     checkin_state = NO_CHECKIN;
+//                     checkout_state = NO_CHECKOUT;
+//                 }
+//             }
+//             /* code */
+//             index_loop++;
+//         }
+
+
+//         printf("distance_front %d\n", distance_front);
+//         printf("distance_rear %d\n", distance_rear);
+//         printf("------------------------\n");
+//         printf("Check in state %d\n", checkin_state);
+//         printf("Check ouut state %d\n", checkout_state);
+//         printf("------------------------\n");
+
+//         if(checkin_state == PREP_CHECKIN){
+//             allow_camera = ON;
+//             allow_reader = ON;
+
+//             Get_current_date_time(Current_Date_Time, Current_Date_Time_Raw);
+//             gpio_set_level(gpio0.reader_trigger_pin, 1);
+//             vTaskDelay(500/portTICK_PERIOD_MS);
+//             gpio_set_level(gpio0.reader_trigger_pin, 0);
+//         }
+//         //condition for check-out
+//         if(checkout_state == PREP_CHECKOUT){
+
+//         }
+//         vTaskDelay(500 / portTICK_PERIOD_MS);
+// 	}
+// }
+
 void ultrasonic(void *pvParamters)
 {
 	ultrasonic_sensor_t sensor_front = {
@@ -92,140 +188,126 @@ void ultrasonic(void *pvParamters)
 		.echo_pin = sensor0.sensor_echo_pin,
 	};
 
-    ultrasonic_sensor_t sensor_rear = {
-		.trigger_pin = sensor1.sensor_trigger_pin,
-		.echo_pin = sensor1.sensor_echo_pin,
-	};
-
 
 	ultrasonic_init(&sensor_front);
-	ultrasonic_init(&sensor_rear);
 
-    uint32_t distance = 0;
-    uint8_t isCarCnt = 0;
-    car_entry = 0;
     checkin_state = NO_CHECKIN;
-    car_status = IDLE;
-    
-	while (true) {
-        uint16_t avg_distance = 0;
-        int index_loop = 1;
-        while(index_loop <= 10 && isCarCnt <= 3){
-                esp_err_t res = ultrasonic_measure_cm(&sensor_front, MAX_DISTANCE_CM, &distance);
-                if (res != ESP_OK) {
-                    printf("Error Ultranonic 1\n");
-                    car_status = IDLE;
-                    break;
-                } else {
-                    if (distance < 100){
-                        if (car_status == IDLE || car_status == CHECKIN){
-                            car_status = CHECKIN;
-                            checkin_state = SHALL_CHECKIN;
+    checkout_state = NO_CHECKOUT;
+    uint32_t distance_later;
+    uint32_t distance_front;
+
+
+    while (true) {
+		uint32_t distance;
+		esp_err_t res = ultrasonic_measure_cm(&sensor_front, MAX_DISTANCE_CM, &distance);
+        distance_later = distance;
+		if (res != ESP_OK) {
+			printf("Error: ");
+			switch (res) {
+				case ESP_ERR_ULTRASONIC_PING:
+					printf("Cannot ping (device is in invalid state)\n");
+					break;
+				case ESP_ERR_ULTRASONIC_PING_TIMEOUT:
+					printf("Ping timeout (no device found)\n");
+					break;
+				case ESP_ERR_ULTRASONIC_ECHO_TIMEOUT:
+					printf("Echo timeout (i.e. distance too big)\n");
+					break;
+				default:
+					printf("%d\n", res);
+			}
+		} else {
+			printf("Distance: %"PRIu32" cm, %.02f m\n", distance, distance / 100.0);
+            checkin_state = NO_CHECKIN;
+            checkout_state = NO_CHECKOUT;
+            if(distance > FAR_THRESHOLD){
+                checkin_state = SHALL_CHECKIN;
+			    uint8_t index = 1;
+                while (index < 10)
+                {
+                    esp_err_t res_temp = ultrasonic_measure_cm(&sensor_front, MAX_DISTANCE_CM, &distance);
+                    if(distance <= distance_later){
+                        car_status = CHECKIN;
+                        distance_later = distance;
+                        if(distance > CAPTURE_THRESHOLD - THRESHOLD_OFFSET && distance < CAPTURE_THRESHOLD + THRESHOLD_OFFSET){
+                            checkin_state = PREP_CHECKIN;
                         }
-                        else { //if (car_status == CHECKOUT)
-                            //Checkout_status = SHALL_CHECKOUT;
-                        }   
-                        isCarCnt++;
-                    } else{
-                        // car_status = IDLE;
+                        else if (distance <= NEAR_THRESHOLD){
+                            checkin_state = DONE_CHECKIN;
+                        }
+                        else{
+                            // do nothing
+                        }
+                    }
+                    else{
+                        car_status = INVALID;
+                        checkin_state = SHALL_CHECKIN;
                         break;
                     }
-                    ESP_LOGI(TAG2, "Average Measurement Distance in %d times: %d cm\n", 10, distance);
-                    vTaskDelay(500 / portTICK_PERIOD_MS);      
-                    index_loop++;
+
+                    index++;
+                    if(checkin_state == PREP_CHECKIN){
+                        allow_camera = ON;
+                        allow_reader = ON;
+
+                        Get_current_date_time(Current_Date_Time, Current_Date_Time_Raw);
+                        gpio_set_level(gpio0.reader_trigger_pin, 1);
+                        vTaskDelay(500/portTICK_PERIOD_MS);
+                        gpio_set_level(gpio0.reader_trigger_pin, 0);
+                    }
+                    vTaskDelay(500 / portTICK_PERIOD_MS);
                 }
-        }
 
-        index_loop = 0;
-        isCarCnt = 0;
+            }else if (distance <= NEAR_THRESHOLD){
+                checkout_state = SHALL_CHECKOUT;
+			    uint8_t index = 1;
 
-                while(index_loop <= 10 && isCarCnt <= 3){
-                esp_err_t res = ultrasonic_measure_cm(&sensor_front, MAX_DISTANCE_CM, &distance);
-                if (res != ESP_OK) {
-                    printf("Error Ultranonic 1\n");
-                    car_status = IDLE;
-                    break;
-                } else {
-                    if (distance < 100){
-                        if (car_status == IDLE || car_status == CKECKOUT){
-                            car_status = CKECKOUT;
-                            // Checkout_status = SHALL_CHECKOUT;
+                while (index < 10)
+                {
+                    esp_err_t res_temp = ultrasonic_measure_cm(&sensor_front, MAX_DISTANCE_CM, &distance);
+                    if(distance >= distance_later){
+                        car_status = CHECKOUT;
+                        distance_later = distance;
+
+                        if(distance > CAPTURE_THRESHOLD - THRESHOLD_OFFSET && distance < CAPTURE_THRESHOLD + THRESHOLD_OFFSET){
+                            checkout_state = PREP_CHECKOUT;
+                            
                         }
-                        else { //if (car_status == CHECKIN)
-                            //Checkout_status = SHALL_CHECKOUT;
-                             checkin_state = SHALL_CHECKIN;
-                        }   
-                        isCarCnt++;
-                    } else{
-                        // car_status = IDLE;
+                        else if (distance > FAR_THRESHOLD){
+                            checkout_state = DONE_CHECKOUT;
+
+                        }
+                        else{
+                            // do nothing
+                        }
+                    }
+                    else{
+                        car_status = INVALID;
+                        checkout_state = SHALL_CHECKOUT;
                         break;
                     }
-                    ESP_LOGI(TAG2, "Average Measurement Distance in %d times: %d cm\n", 10, distance);
-                    vTaskDelay(500 / portTICK_PERIOD_MS);      
-                    index_loop++;
-                }
-            isCarCnt++;
-        }
+                    index++;
+                    //condition for check-out
+                    if(checkout_state == PREP_CHECKOUT){
+                        allow_camera = ON;
+                        allow_reader = ON;
 
-        switch (car_status)
-        {
-        case IDLE:
-            /* code */
-            break;
-        case CHECKIN:
-            /* code */
+                        Get_current_date_time(Current_Date_Time, Current_Date_Time_Raw);
+                        gpio_set_level(gpio0.reader_trigger_pin, 1);
+                        vTaskDelay(500/portTICK_PERIOD_MS);
+                        gpio_set_level(gpio0.reader_trigger_pin, 0);
+                    }   
+                    vTaskDelay(500 / portTICK_PERIOD_MS);
 
+                }                
 
-            break;
-        case CHEKCOUT:
-            /* code */
-            break;
-        default:
-            break;
-        }
+            }   
+		}
 
-        if(car_status == SHALL_CHECKIN){
-            allow_camera = ON;
-            allow_reader = ON;
-
-            Get_current_date_time(Current_Date_Time, Current_Date_Time_Raw);
-
-            gpio_set_level(gpio0.reader_trigger_pin, 1);
-            vTaskDelay(1000/portTICK_PERIOD_MS);
-            gpio_set_level(gpio0.reader_trigger_pin, 0);
-        } else{
-
-        }
-
-        printf("sensor_next = %d \n", checkin_state);
-
-       
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-
-        // avg_distance = avg_distance / 10;
-        
-        // ESP_LOGE(TAG2, "distance = %d and carCounter = %d\n", avg_distance, isCarCnt);
-        // // distance with in 80cm.
-        // if( avg_distance < 80){
-        //     isCarCnt++;
-        //     if (isCarCnt == 3){
-        //         isCarCnt = 0;
-        //         allow_camera = ON;
-        //         allow_reader = ON;
-
-        //         Get_current_date_time(Current_Date_Time, Current_Date_Time_Raw);
-
-        //         ESP_LOGI(TAG2, "Average Measurement Distance in %d times: %d cm\n", 10, distance);
-        //         gpio_set_level(gpio0.reader_trigger_pin, 0);
-        //         vTaskDelay(1000/portTICK_PERIOD_MS);
-        //         gpio_set_level(gpio0.reader_trigger_pin, 1);
-        //     }
-        // }
-        // else{
-        //     isCarCnt = 0;
-        // }
-        // vTaskDelay(1000 / portTICK_PERIOD_MS);
+        printf("distance_front %d\n", distance);
+        printf("------------------------\n");
+        printf("Check in state %d\n", checkin_state);
+        printf("Check ouut state %d\n", checkout_state);
+        printf("------------------------\n");
 	}
-
-    free(&sensor);
 }
