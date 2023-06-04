@@ -4,7 +4,7 @@
 #include "header.h"
 
 server server_infor = {
-    .web_server = "192.168.91.7",
+    .web_server = "192.168.1.6",
     .web_port = "3000",
     .web_path = "/check-in-out-image/check-in"
 };
@@ -36,7 +36,7 @@ gpio_serveral gpio0 = {
 
 void app_main(void)
 {
-    ESP_ERROR_CHECK(nvs_flash_init() );
+    ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
@@ -50,6 +50,10 @@ void app_main(void)
 
     allow_reader = OFF;
     allow_camera = OFF;
+    capture_done = OFF;
+    readtag_done = OFF;
+    postetag_done = false;
+    postimage_done = false;
     esp_err_t err;
     if (wifi_connect() == ESP_OK)
     {

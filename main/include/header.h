@@ -4,6 +4,7 @@
 #include "camera_header.h"
 #include "protocol_common.h"
 #include "datetime.h"
+#include "stdbool.h"
 
 // #define ESP32
 #define ESP32CAM
@@ -12,10 +13,10 @@
 #define areaCode "MK00"
 
 #define MAX_DISTANCE_CM 450 // 5m max // 450
-#define FAR_THRESHOLD 300
-#define CAPTURE_THRESHOLD 110
-#define NEAR_THRESHOLD 50
-#define THRESHOLD_OFFSET 30
+#define FAR_THRESHOLD 50  //300
+#define CAPTURE_THRESHOLD  25   ///110
+#define NEAR_THRESHOLD  10      //50
+#define THRESHOLD_OFFSET    5       //30
 
 
 
@@ -83,12 +84,16 @@ static const int RX_BUF_SIZE = 1024;
 char request_msg[1024];
 char request_content[512];
 char recv_buf[512];
-char hexStr[128];
+char hexStr[40];
 uint8_t checkin_state;
 uint8_t checkout_state;
 uint8_t allow_reader;
 uint8_t allow_camera;
 uint8_t car_status;
+uint8_t capture_done;
+uint8_t readtag_done;
+uint8_t postimage_done;
+uint8_t postetag_done;
 
 server server_infor;
 uart_pin uart0;
@@ -101,6 +106,7 @@ bool read_tag_ok;
 
 struct addrinfo *res;
 struct in_addr *addr;
+
 int status;
 
 void http_post_task(char *paraA);

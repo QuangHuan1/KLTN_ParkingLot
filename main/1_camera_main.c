@@ -1,9 +1,9 @@
 #include "header.h"
 
-const struct addrinfo hints = {
-    .ai_family = AF_INET,
-    .ai_socktype = SOCK_STREAM,
-};
+// const struct addrinfo hints = {
+//     .ai_family = AF_INET,
+//     .ai_socktype = SOCK_STREAM,
+// };
 
 esp_err_t init_camera(void)
 {
@@ -58,7 +58,14 @@ void http_post_image(camera_fb_t *fb)
     //     ESP_LOGI(TAG_CAM, "Camera capture success!");
     // }
 
-    while(1) {
+    const struct addrinfo hints = {
+        .ai_family = AF_INET,
+        .ai_socktype = SOCK_STREAM,
+    };
+
+
+    //while(1){
+    while(3) {
         int err = getaddrinfo(server_infor.web_server, server_infor.web_port, &hints, &res);
         if(err != 0 || res == NULL) {
             ESP_LOGE(TAG_CAM, "DNS lookup failed err=%d res=%p", err, res);
@@ -164,24 +171,30 @@ void http_post_image(camera_fb_t *fb)
 void jpg_capture(){
     while(1){
         // condition for checkin/out state?
-        if(allow_camera == ON ){
-            camera_fb_t * fb = NULL;
+        static camera_fb_t * fb = NULL; 
 
+        if(checkin_state == PREP_CHECKIN && allow_camera == ON){
             fb = esp_camera_fb_get();
             if (!fb) {
                 ESP_LOGE(TAG_CAM, "Camera capture failed");
             }
             else{
+                capture_done = ON;
                 ESP_LOGI(TAG_CAM, "Camera capture success!");
             }
-
-            if(checkin_state == DONE_CHECKIN){
+        }else if(checkin_state == DONE_CHECKIN && capture_done == ON){
+                ESP_LOGI(TAG_CAM, "Posting Image!");
                 http_post_image(fb);
-            }
-            esp_camera_fb_return(fb);
-
-            allow_camera = OFF;
+                postimage_done = true;
+                allow_camera = OFF;
+                capture_done = OFF;
+                esp_camera_fb_return(fb);
         }
+        else{
+            esp_camera_fb_return(fb);
+        }
+
+
         ESP_LOGE(TAG_CAM, "Vehicle Not Detected!");
         vTaskDelay(2000 / portTICK_PERIOD_MS);
     }

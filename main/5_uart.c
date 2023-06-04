@@ -43,13 +43,17 @@ void rx_task(void *arg)
     
     while (1) {
         const int rxBytes = uart_read_bytes(uart0.uart_num, rx_data, RX_BUF_SIZE, 1000 / portTICK_RATE_MS);
+        ESP_LOGI(RX_TASK_TAG, "Read %d bytes: '%s'", rxBytes, rx_data);
+
         if (rxBytes > 0 && allow_reader == ON) {
             rx_data[rxBytes] = 0;
             // ESP_LOGI(RX_TASK_TAG, "Read %d bytes: '%s'", rxBytes, rx_data);
             ESP_LOG_BUFFER_HEXDUMP(RX_TASK_TAG, rx_data, rxBytes, ESP_LOG_INFO);
 
             int j = 0;
-            for (int i = 0; i < rxBytes; i++)
+            uint8_t end = rxBytes - 2;
+            uint8_t start = end - 12;
+            for (int i = start; i < end; i++)
             {
                 sprintf(hexStr + j, "%02X", rx_data[i]);
                 j += 2;
@@ -57,23 +61,27 @@ void rx_task(void *arg)
 
             hexStr[j] = '\0';
             ESP_LOGI(RX_TASK_TAG, "-------Hexa String: %s", hexStr);
-            // if(car_entry == 2){
-            //     http_post_task(hexStr);
-            //     car_entry = 0;
-            // }
+            readtag_done = ON;
 
-            // if (checkin_state == DONE_CHECKIN){
-            //     http_post_task(hexStr);
-            //     checkin_state = NO_CHECKIN;
-            // }
 
             // if (checkout_state == DONE_CHECKOUT){
             //     http_post_task(hexStr);
             //     checkout_state = NO_CHECKOUT;
             // }
-            allow_reader = OFF;
+            // allow_reader = OFF;
 
         }
+
+        if (checkin_state == DONE_CHECKIN && postimage_done == true && postetag_done == false){
+                ESP_LOGI(TAG_CAM, "Uploading E-TAG data!");
+                http_post_task(hexStr);
+                allow_reader = OFF;
+                checkin_state = NO_CHECKIN;
+                readtag_done = OFF;
+                postimage_done = false;
+                postetag_done = true;
+        }
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 
@@ -84,7 +92,7 @@ void http_post_task(char *tagID)
         .ai_socktype = SOCK_STREAM,
     };
 
-    while(1) {
+    while(3) {
         int err = getaddrinfo(server_infor.web_server, server_infor.web_port, &hints, &res);
         if(err != 0 || res == NULL) {
             ESP_LOGE(TAG, "DNS lookup failed err=%d res=%p", err, res);
