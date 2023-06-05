@@ -138,7 +138,6 @@ void ultrasonic(void *pvParamters)
                     esp_err_t res_temp = ultrasonic_measure_cm(&sensor_front, MAX_DISTANCE_CM, &distance);
 
                     if(distance <= distance_later){
-                        car_status = CHECKIN;
                         distance_later = distance;
                         if(distance > CAPTURE_THRESHOLD - THRESHOLD_OFFSET && distance < CAPTURE_THRESHOLD + THRESHOLD_OFFSET){
                             checkin_state = PREP_CHECKIN;
@@ -155,7 +154,6 @@ void ultrasonic(void *pvParamters)
                         }
                     }
                     else{
-                        car_status = INVALID;
                         checkin_state = SHALL_CHECKIN;
                         break;
                     }
@@ -167,14 +165,14 @@ void ultrasonic(void *pvParamters)
                     if(checkin_state == PREP_CHECKIN){
                         Get_current_date_time(Current_Date_Time, Current_Date_Time_Raw);
 
-                        if(capture_done == OFF){
+                        if(capture_done == false){
                             allow_camera = ON;
                         } else {
                             //do nothing
                             allow_camera = OFF;
 
                         }
-                        if(readtag_done == OFF){
+                        if(readtag_done == false){
                             allow_reader = ON;
                             gpio_set_level(gpio0.reader_trigger_pin, 1);
                             vTaskDelay(200/portTICK_PERIOD_MS);
@@ -186,15 +184,17 @@ void ultrasonic(void *pvParamters)
                             allow_reader = OFF;
                         }
                     } else if (checkin_state == DONE_CHECKIN){
-                        while(!postetag_done){
+                        uint8_t count_loop = 0;
+                        while(count_loop <= 10){
+                            count_loop++;
                             vTaskDelay(500/portTICK_PERIOD_MS);
                         }
                         postetag_done = false;
                     }
                     else
                     {
-                        capture_done = OFF;
-                        readtag_done = OFF;
+                        capture_done = false;
+                        readtag_done = false;
                     }
                     vTaskDelay(500 / portTICK_PERIOD_MS);
                 }
@@ -202,7 +202,7 @@ void ultrasonic(void *pvParamters)
             }else if (distance <= NEAR_THRESHOLD){
                 printf("IN CHECKOUT STATE\n");
                 if(checkout_state == NO_CHECKOUT){
-                        checkout_state = SHALL_CHECKOUT;
+                    checkout_state = SHALL_CHECKOUT;
                 }
                 else{
                     //do nothing
@@ -214,15 +214,12 @@ void ultrasonic(void *pvParamters)
                 {
                     esp_err_t res_temp = ultrasonic_measure_cm(&sensor_front, MAX_DISTANCE_CM, &distance);
                     if(distance >= distance_later){
-                        car_status = CHECKOUT;
                         distance_later = distance;
 
                         if(distance > CAPTURE_THRESHOLD - THRESHOLD_OFFSET && distance < CAPTURE_THRESHOLD + THRESHOLD_OFFSET){
                             checkout_state = PREP_CHECKOUT;
-                            
                         }
                         else if (distance > FAR_THRESHOLD){
-                            // checkout_state = DONE_CHECKOUT;
                             if(checkout_state == PREP_CHECKOUT){
                                 checkout_state = DONE_CHECKOUT;
                             }else{
@@ -235,7 +232,6 @@ void ultrasonic(void *pvParamters)
                         }
                     }
                     else{
-                        car_status = INVALID;
                         checkout_state = SHALL_CHECKOUT;
                         break;
                     }
@@ -248,13 +244,13 @@ void ultrasonic(void *pvParamters)
                     if(checkout_state == PREP_CHECKOUT){
                         Get_current_date_time(Current_Date_Time, Current_Date_Time_Raw);
 
-                        if(capture_done == OFF){
+                        if(capture_done == false){
                             allow_camera = ON;
                         } else {
                             allow_camera = OFF;
                         }
 
-                        if(readtag_done == OFF){
+                        if(readtag_done == false){
                             allow_reader = ON;
                             gpio_set_level(gpio0.reader_trigger_pin, 1);
                             vTaskDelay(200/portTICK_PERIOD_MS);
@@ -262,6 +258,20 @@ void ultrasonic(void *pvParamters)
                         } else {
                             allow_reader = OFF;
                         } 
+                    } 
+                    else if (checkout_state == DONE_CHECKOUT)
+                    {
+                        uint8_t count_loop = 0;
+                        while(count_loop <= 10){
+                            count_loop++;
+                            vTaskDelay(500/portTICK_PERIOD_MS);
+                        }
+                        postetag_done = false;
+                    }
+                    else
+                    {
+                        capture_done = false;
+                        readtag_done = false;
                     }
                     vTaskDelay(500 / portTICK_PERIOD_MS);
                 }                

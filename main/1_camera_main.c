@@ -1,10 +1,5 @@
 #include "header.h"
 
-// const struct addrinfo hints = {
-//     .ai_family = AF_INET,
-//     .ai_socktype = SOCK_STREAM,
-// };
-
 esp_err_t init_camera(void)
 {
     camera_config_t camera_config = {
@@ -45,27 +40,19 @@ esp_err_t init_camera(void)
 }
 
 
-void http_post_image(camera_fb_t *fb)
+void http_post_image(camera_fb_t *fb, char *path)
 {   
-
-    // camera_fb_t * fb = NULL;
-
-    // fb = esp_camera_fb_get();
-    // if (!fb) {
-    //     ESP_LOGE(TAG_CAM, "Camera capture failed");
-    // }
-    // else{
-    //     ESP_LOGI(TAG_CAM, "Camera capture success!");
-    // }
 
     const struct addrinfo hints = {
         .ai_family = AF_INET,
         .ai_socktype = SOCK_STREAM,
     };
 
-
     //while(1){
-    while(3) {
+    uint8_t count_loop = 0;
+
+    while(count_loop <= 3) {
+        count_loop++;
         int err = getaddrinfo(server_infor.web_server, server_infor.web_port, &hints, &res);
         if(err != 0 || res == NULL) {
             ESP_LOGE(TAG_CAM, "DNS lookup failed err=%d res=%p", err, res);
@@ -101,7 +88,7 @@ void http_post_image(camera_fb_t *fb)
         char HEADER[512];
         char header[512];
 
-        sprintf(header, "POST %s HTTP/1.1\r\n", server_infor.web_path);
+        sprintf(header, "POST %s HTTP/1.1\r\n", path);
         strcpy(HEADER, header);
         sprintf(header, "Host: %s:%s\r\n",  server_infor.web_server, server_infor.web_port);
         strcat(HEADER, header);
@@ -158,7 +145,6 @@ void http_post_image(camera_fb_t *fb)
             vTaskDelay(4000 / portTICK_PERIOD_MS);
             continue;
         }
-        // esp_camera_fb_return(fb);
 
         ESP_LOGI(TAG_CAM, "Starting again!");
         vTaskDelay(2000 / portTICK_PERIOD_MS);
@@ -173,21 +159,40 @@ void jpg_capture(){
         // condition for checkin/out state?
         static camera_fb_t * fb = NULL; 
 
-        if(checkin_state == PREP_CHECKIN && allow_camera == ON){
+        if((checkin_state == PREP_CHECKIN || checkout_state == PREP_CHECKOUT) && allow_camera == ON){
             fb = esp_camera_fb_get();
             if (!fb) {
                 ESP_LOGE(TAG_CAM, "Camera capture failed");
             }
             else{
-                capture_done = ON;
+                capture_done = true;
                 ESP_LOGI(TAG_CAM, "Camera capture success!");
             }
-        }else if(checkin_state == DONE_CHECKIN && capture_done == ON){
+        }else if((checkin_state == DONE_CHECKIN || checkout_state == DONE_CHECKOUT) && capture_done == true){
                 ESP_LOGI(TAG_CAM, "Posting Image!");
-                http_post_image(fb);
+                #ifdef POSITION == GATE 
+                    #ifdef TYPE == CHECKIN
+                        if(checkin_state == DONE_CHECKIN){
+                            http_post_image(fb, server_infor.post_image_checkin_path);
+                        }
+                    #elif TYPE == CHECKOUT
+                        if(checkout_state == DONE_CHECKOUT){
+                            http_post_image(fb, server_infor.post_image_checkout_path);
+                        }
+                    #endif
+                #endif
+
+                // if(checkin_state == DONE_CHECKIN){
+                //     http_post_image(fb, server_infor.post_image_checkin_path);
+                // }
+                // if(checkout_state == DONE_CHECKOUT){
+                //     http_post_image(fb, server_infor.post_image_checkout_path);
+                // }
+                // http_post_image(fb, server_infor.post_image_path);
+
                 postimage_done = true;
                 allow_camera = OFF;
-                capture_done = OFF;
+                capture_done = false;
                 esp_camera_fb_return(fb);
         }
         else{

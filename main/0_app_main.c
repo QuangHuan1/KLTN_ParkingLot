@@ -4,9 +4,14 @@
 #include "header.h"
 
 server server_infor = {
-    .web_server = "192.168.1.6",
+    .web_server = "192.168.1.8",
     .web_port = "3000",
-    .web_path = "/check-in-out-image/check-in"
+    .post_image_checkin_path = "/check-in-out-image/check-in",
+    .post_image_checkout_path = "/check-in-out-image/check-out",
+    .post_checkin_path = "/check-in",
+    .post_checkout_path = "/check-out",
+    .post_checkin_area_path = "/check-in/check-in-area",
+    .post_checkout_area_path = "/check-out/check-out-area"
 };
 
 #ifdef ESP32CAM
@@ -19,11 +24,6 @@ uart_pin uart0 = {
 sensor_pin sensor0 = {
     .sensor_trigger_pin = GPIO_NUM_13,
     .sensor_echo_pin = GPIO_NUM_15,
-};
-
-sensor_pin sensor1 = {
-    .sensor_trigger_pin = GPIO_NUM_14,
-    .sensor_echo_pin = GPIO_NUM_2,
 };
 
 
@@ -50,10 +50,11 @@ void app_main(void)
 
     allow_reader = OFF;
     allow_camera = OFF;
-    capture_done = OFF;
-    readtag_done = OFF;
+    capture_done = false;
+    readtag_done = false;
     postetag_done = false;
     postimage_done = false;
+
     esp_err_t err;
     if (wifi_connect() == ESP_OK)
     {

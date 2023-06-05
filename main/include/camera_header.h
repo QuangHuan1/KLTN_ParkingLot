@@ -54,7 +54,6 @@ extern "C" {
 #define CAM_PIN_HREF 23
 #define CAM_PIN_PCLK 22
 
-static const char *TAG_CAM = "CAMERA";
 
 // #define PART_BOUNDARY "123456789000000000000987654321"
 // static const char* _STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
@@ -65,7 +64,7 @@ static const char *TAG_CAM = "CAMERA";
 
 esp_err_t init_camera(void);
 esp_err_t setup_server(void);
-void http_post_image();
+void http_post_image(camera_fb_t *fb, char *path);
 void jpg_capture();
 
 

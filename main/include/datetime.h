@@ -1,3 +1,6 @@
+#ifndef __DATETIME_H__
+#define __DATETIME_H__
+
 #include <time.h>
 #include <sys/time.h>
 #include "esp_attr.h"
@@ -20,8 +23,8 @@
 
 
 
-#define EXAMPLE_ESP_WIFI_SSID      "toh8hc"
-#define EXAMPLE_ESP_WIFI_PASS      "24102001"
+// #define EXAMPLE_ESP_WIFI_SSID      "toh8hc"
+// #define EXAMPLE_ESP_WIFI_PASS      "24102001"
 
 // static EventGroupHandle_t s_wifi_event_group;
 
@@ -30,7 +33,6 @@
  * - we failed to connect after the maximum amount of retries */
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
-static const char *TAG_DATE = "FROM DATETIME";
 
 char Current_Date_Time[50];
 char Current_Date_Time_Raw[50];
@@ -49,5 +51,7 @@ void Set_SystemTime_SNTP();
 
 void rx_task(void *arg);
 esp_err_t init_uart(void);
+
+#endif /* __DATETIME_H__ */
 
 

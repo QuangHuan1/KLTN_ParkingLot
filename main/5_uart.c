@@ -38,17 +38,16 @@ esp_err_t init_uart(void) {
 void rx_task(void *arg)
 {   
 
-    esp_log_level_set(RX_TASK_TAG, ESP_LOG_INFO);
+    esp_log_level_set(TAG_UART, ESP_LOG_INFO);
     uint8_t* rx_data = (uint8_t*) malloc(RX_BUF_SIZE+1);
     
     while (1) {
         const int rxBytes = uart_read_bytes(uart0.uart_num, rx_data, RX_BUF_SIZE, 1000 / portTICK_RATE_MS);
-        ESP_LOGI(RX_TASK_TAG, "Read %d bytes: '%s'", rxBytes, rx_data);
+        ESP_LOGI(TAG_UART, "Read %d bytes\n", rxBytes);
 
         if (rxBytes > 0 && allow_reader == ON) {
             rx_data[rxBytes] = 0;
-            // ESP_LOGI(RX_TASK_TAG, "Read %d bytes: '%s'", rxBytes, rx_data);
-            ESP_LOG_BUFFER_HEXDUMP(RX_TASK_TAG, rx_data, rxBytes, ESP_LOG_INFO);
+            ESP_LOG_BUFFER_HEXDUMP(TAG_UART, rx_data, rxBytes, ESP_LOG_INFO);
 
             int j = 0;
             uint8_t end = rxBytes - 2;
@@ -60,24 +59,42 @@ void rx_task(void *arg)
             }
 
             hexStr[j] = '\0';
-            ESP_LOGI(RX_TASK_TAG, "-------Hexa String: %s", hexStr);
-            readtag_done = ON;
-
-
-            // if (checkout_state == DONE_CHECKOUT){
-            //     http_post_task(hexStr);
-            //     checkout_state = NO_CHECKOUT;
-            // }
-            // allow_reader = OFF;
+            ESP_LOGI(TAG_UART, "-------Hexa String: %s", hexStr);
+            readtag_done = true;
 
         }
 
-        if (checkin_state == DONE_CHECKIN && postimage_done == true && postetag_done == false){
+        if ((checkin_state == DONE_CHECKIN || checkout_state == DONE_CHECKOUT) && postimage_done == true && postetag_done == false){
                 ESP_LOGI(TAG_CAM, "Uploading E-TAG data!");
-                http_post_task(hexStr);
+
+            #ifdef POSITION == GATE 
+                #ifdef TYPE == CHECKIN
+                    if(checkin_state == DONE_CHECKIN){
+                        http_post_task(hexStr, server_infor.post_checkin_path);
+                    }
+                #elif TYPE == CHECKOUT
+                    if(checkout_state == DONE_CHECKOUT){
+                        http_post_task(hexStr, server_infor.post_checkout_path);
+                    }
+                #endif
+            #elif POSITION == AREA
+                    if(checkin_state == DONE_CHECKIN){
+                        http_post_task(hexStr, server_infor.post_checkin_area_path);
+                    }
+                    if(checkout_state == DONE_CHECKOUT){
+                        http_post_task(hexStr, server_infor.post_checkout_area_path);
+                    }
+            #endif
+                // if(checkin_state == DONE_CHECKIN){
+                //     http_post_task(hexStr, server_infor.post_checkin_path);
+                // }
+                // if(checkout_state == DONE_CHECKOUT){
+                //     http_post_task(hexStr, server_infor.post_checkout_path);
+                // }
                 allow_reader = OFF;
                 checkin_state = NO_CHECKIN;
-                readtag_done = OFF;
+                checkout_state = NO_CHECKOUT;
+                readtag_done = false;
                 postimage_done = false;
                 postetag_done = true;
         }
@@ -85,17 +102,18 @@ void rx_task(void *arg)
     }
 }
 
-void http_post_task(char *tagID)
+void http_post_task(char *tagID, char *path)
 {   
     const struct addrinfo hints = {
         .ai_family = AF_INET,
         .ai_socktype = SOCK_STREAM,
     };
-
-    while(3) {
+    uint8_t count_loop = 0;
+    while(count_loop <= 3) {
+        count_loop++;
         int err = getaddrinfo(server_infor.web_server, server_infor.web_port, &hints, &res);
         if(err != 0 || res == NULL) {
-            ESP_LOGE(TAG, "DNS lookup failed err=%d res=%p", err, res);
+            ESP_LOGE(TAG_POST, "DNS lookup failed err=%d res=%p", err, res);
             vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;
         }
@@ -103,46 +121,80 @@ void http_post_task(char *tagID)
         /* Code to print the resolved IP.
            Note: inet_ntoa is non-reentrant, look at ipaddr_ntoa_r for "real" code */
         addr = &((struct sockaddr_in *)res->ai_addr)->sin_addr;
-        ESP_LOGI(TAG, "DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
+        ESP_LOGI(TAG_POST, "DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
 
         status = socket(res->ai_family, res->ai_socktype, 0);
         if(status < 0) {
-            ESP_LOGE(TAG, "... Failed to allocate socket.");
+            ESP_LOGE(TAG_POST, "... Failed to allocate socket.");
             freeaddrinfo(res);
             vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;
         }
-        ESP_LOGI(TAG, "... allocated socket");
+        ESP_LOGI(TAG_POST, "... allocated socket");
 
         if(connect(status, res->ai_addr, res->ai_addrlen) != 0) {
-            ESP_LOGE(TAG, "... socket connect failed errno=%d", errno);
+            ESP_LOGE(TAG_POST, "... socket connect failed errno=%d", errno);
             close(status);
             freeaddrinfo(res);
             vTaskDelay(4000 / portTICK_PERIOD_MS);
             continue;
         }
 
-        ESP_LOGI(TAG, "... connected");
+        ESP_LOGI(TAG_POST, "... connected");
         freeaddrinfo(res);
 
-        sprintf(request_content, "{\"eTag\":\"%s\",\"checkinTime\":\"%s\",\"gateCode\":\"%s\",\"areaCode\":\"%s\",\"imageCode\":\"%s\"}", tagID, Current_Date_Time_Raw, gateCode, areaCode, Current_Date_Time);
+        if(path == server_infor.post_checkin_path){
+            sprintf(request_content, "{\"eTag\":\"%s\", \
+                                       \"checkinTime\":\"%s\", \
+                                       \"gateCode\":\"%s\", \
+                                       \"areaCode\":\"%s\", \
+                                       \"imageCode\":\"%s\"}", 
+                                   tagID, Current_Date_Time_Raw, 
+                                   GATECODE, AREACODE, Current_Date_Time);
+        }
+        else if(path == server_infor.post_checkout_path){
+            sprintf(request_content, "{\"eTag\":\"%s\", \
+                                       \"checkoutTime\":\"%s\", \
+                                       \"gateCode\":\"%s\", \
+                                       \"imageCode\":\"%s\"}", 
+                                   tagID, Current_Date_Time_Raw, 
+                                   GATECODE, Current_Date_Time);
+        }
+        else if(path == server_infor.post_checkin_area_path){
+            sprintf(request_content, "{\"eTag\":\"%s\", \
+                                       \"areaCode\":\"%s\"}", 
+                                       tagID, AREACODE);
+        }
+        else if(path == server_infor.post_checkout_area_path){
+            sprintf(request_content, "{\"eTag\":\"%s\", \
+                                       \"areaCode\":\"%s\"}", 
+                                       tagID, AREACODE);
+        }
+
+
+        // sprintf(request_content, "{\"eTag\":\"%s\", \"%s\":\"%s\", \"gateCode\":\"%s\", \"areaCode\":\"%s\", \"imageCode\":\"%s\"}", 
+        //                            tagID, timefield, Current_Date_Time_Raw, GATECODE, areaCode, Current_Date_Time);
+
         printf("%s\n",request_content);
-        sprintf(request_msg, "POST /check-in HTTP/1.1\r\n"
-                        "Host: 192.168.91.7:3000\r\n"
+        sprintf(request_msg, "POST %s HTTP/1.1\r\n"
+                        "Host: %s:%s\r\n"
                         "Connection: close\r\n"
                         "Content-Type: application/json\r\n"
                         "Content-Length:%d\r\n"
-                        "\n%s\r\n", strlen(request_content), request_content);
+                        "\n%s\r\n", path, 
+                        server_infor.web_server, server_infor.web_port, 
+                        strlen(request_content), 
+                        request_content);
 
         if (write(status, request_msg, strlen(request_msg)) < 0) {
-            ESP_LOGE(TAG, "... socket send failed");
+            ESP_LOGE(TAG_POST, "... socket send failed");
             close(status);
             vTaskDelay(4000 / portTICK_PERIOD_MS);
             continue;
         }
-        ESP_LOGI(TAG, "... socket send success");
+        ESP_LOGI(TAG_POST, "... socket send success");
         vTaskDelay(2000 / portTICK_PERIOD_MS);
-        ESP_LOGI(TAG, "Starting again!");
+        ESP_LOGI(TAG_POST, "Starting again!");
         break;
     }
 }
