@@ -42,58 +42,68 @@ void rx_task(void *arg)
     uint8_t* rx_data = (uint8_t*) malloc(RX_BUF_SIZE+1);
     
     while (1) {
-        const int rxBytes = uart_read_bytes(uart0.uart_num, rx_data, RX_BUF_SIZE, 1000 / portTICK_RATE_MS);
-        ESP_LOGI(TAG_UART, "Read %d bytes\n", rxBytes);
 
-        if (rxBytes > 0 && allow_reader == ON) {
-            rx_data[rxBytes] = 0;
-            ESP_LOG_BUFFER_HEXDUMP(TAG_UART, rx_data, rxBytes, ESP_LOG_INFO);
+        if((PREP_CHECKIN == ON || PREP_CHECKOUT == ON) && allow_reader == ON && readtag_done == false){
+            gpio_set_level(gpio0.reader_trigger_pin, 1);
+            vTaskDelay(100/portTICK_PERIOD_MS);
+            gpio_set_level(gpio0.reader_trigger_pin, 0);
+            const int rxBytes = uart_read_bytes(uart0.uart_num, rx_data, RX_BUF_SIZE, 1000 / portTICK_RATE_MS);
+            ESP_LOGI(TAG_UART, "Read %d bytes\n", rxBytes);
 
-            int j = 0;
-            uint8_t end = rxBytes - 2;
-            uint8_t start = end - 12;
-            for (int i = start; i < end; i++)
-            {
-                sprintf(hexStr + j, "%02X", rx_data[i]);
-                j += 2;
+            if (rxBytes > 0 && rxBytes < 25) {
+                rx_data[rxBytes] = 0;
+                ESP_LOG_BUFFER_HEXDUMP(TAG_UART, rx_data, rxBytes, ESP_LOG_INFO);
+
+                int j = 0;
+                uint8_t end = rxBytes - 2;
+                uint8_t start = end - 12;
+                for (int i = start; i < end; i++)
+                {
+                    sprintf(hexStr + j, "%02X", rx_data[i]);
+                    j += 2;
+                }
+
+                hexStr[j] = '\0';
+                ESP_LOGI(TAG_UART, "-------Hexa String: %s", hexStr);
+                readtag_done = true;
+
             }
 
-            hexStr[j] = '\0';
-            ESP_LOGI(TAG_UART, "-------Hexa String: %s", hexStr);
-            readtag_done = true;
-
-        }
-
-        if ((checkin_state == DONE_CHECKIN || checkout_state == DONE_CHECKOUT) && postimage_done == true && postetag_done == false){
-                ESP_LOGI(TAG_CAM, "Uploading E-TAG data!");
+        } else if ((DONE_CHECKIN == ON || DONE_CHECKOUT == ON) && postimage_done == true && readtag_done == true){
+            ESP_LOGI(TAG_CAM, "Uploading E-TAG data!");
 
             #ifdef POSITION == GATE 
                 #ifdef TYPE == CHECKIN
-                    if(checkin_state == DONE_CHECKIN){
-                        http_post_task(hexStr, server_infor.post_checkin_path);
+                    if(DONE_CHECKIN == ON){
+                        http_post_tagdata(hexStr, server_infor.post_checkin_path);
                     }
                 #elif TYPE == CHECKOUT
-                    if(checkout_state == DONE_CHECKOUT){
-                        http_post_task(hexStr, server_infor.post_checkout_path);
+                    if(DONE_CHECKOUT == ON){
+                        http_post_tagdata(hexStr, server_infor.post_checkout_path);
+                    }
+                #elif TYPE == CHECKIN_OUT
+                    if(DONE_CHECKIN == ON){
+                        http_post_tagdata(hexStr, server_infor.post_checkin_path);
+                    }
+                    if(DONE_CHECKOUT == ON){
+                        http_post_tagdata(hexStr, server_infor.post_checkout_path);
                     }
                 #endif
             #elif POSITION == AREA
-                    if(checkin_state == DONE_CHECKIN){
-                        http_post_task(hexStr, server_infor.post_checkin_area_path);
+                    if(DONE_CHECKIN == ON){
+                        http_post_tagdata(hexStr, server_infor.post_checkin_area_path);
                     }
-                    if(checkout_state == DONE_CHECKOUT){
-                        http_post_task(hexStr, server_infor.post_checkout_area_path);
+                    if(DONE_CHECKOUT == ON){
+                        http_post_tagdata(hexStr, server_infor.post_checkout_area_path);
                     }
             #endif
-                // if(checkin_state == DONE_CHECKIN){
-                //     http_post_task(hexStr, server_infor.post_checkin_path);
-                // }
-                // if(checkout_state == DONE_CHECKOUT){
-                //     http_post_task(hexStr, server_infor.post_checkout_path);
-                // }
+                if(DONE_CHECKIN == ON){
+                    http_post_tagdata(hexStr, server_infor.post_checkin_path);
+                }
+                if(DONE_CHECKOUT == ON){
+                    http_post_tagdata(hexStr, server_infor.post_checkout_path);
+                }
                 allow_reader = OFF;
-                checkin_state = NO_CHECKIN;
-                checkout_state = NO_CHECKOUT;
                 readtag_done = false;
                 postimage_done = false;
                 postetag_done = true;
@@ -102,7 +112,7 @@ void rx_task(void *arg)
     }
 }
 
-void http_post_task(char *tagID, char *path)
+void http_post_tagdata(char *tagID, char *path)
 {   
     const struct addrinfo hints = {
         .ai_family = AF_INET,
@@ -148,17 +158,19 @@ void http_post_task(char *tagID, char *path)
                                        \"checkinTime\":\"%s\", \
                                        \"gateCode\":\"%s\", \
                                        \"areaCode\":\"%s\", \
+                                       \"realAreaCode\":\"%s\", \
                                        \"imageCode\":\"%s\"}", 
                                    tagID, Current_Date_Time_Raw, 
-                                   GATECODE, AREACODE, Current_Date_Time);
+                                   GATECODE_CHECKIN, AREACODE, REAL_AREACODE, Current_Date_Time);
         }
         else if(path == server_infor.post_checkout_path){
             sprintf(request_content, "{\"eTag\":\"%s\", \
                                        \"checkoutTime\":\"%s\", \
                                        \"gateCode\":\"%s\", \
+                                       \"realAreaCode\":\"%s\", \
                                        \"imageCode\":\"%s\"}", 
                                    tagID, Current_Date_Time_Raw, 
-                                   GATECODE, Current_Date_Time);
+                                   GATECODE_CHECKOUT, REAL_AREACODE, Current_Date_Time);
         }
         else if(path == server_infor.post_checkin_area_path){
             sprintf(request_content, "{\"eTag\":\"%s\", \

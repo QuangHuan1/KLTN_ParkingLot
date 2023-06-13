@@ -16,18 +16,30 @@
 //Determine whether the vehicle is entering or exiting
 #define CHECKIN     0
 #define CHECKOUT    1
+#define CHECKIN_OUT    2
+
 
 #define POSITION    GATE       //Place at GATE
-#define TYPE        CHECKIN        //Checkin gate
+#define TYPE        CHECKIN_OUT        //Checkin gate
 
-// Declare Gate and Area Code
-#define GATECODE    "MC00"
+// Declare Gate and Area Code Khu E
+#define GATECODE_CHECKIN    "MC00"
+#define GATECODE_CHECKOUT    "MC01"
 #define AREACODE    "MK00"
+#define REAL_AREACODE    "MK01"
+
+
+// // Declare Gate and Area Code Khu B
+// #define GATECODE_CHECKIN    "MC00"
+// #define GATECODE_CHECKOUT    "MC01"
+// #define AREACODE    "MK00"
+// #define REAL_AREACODE    "MK02"
+
 
 //Define distance for tracking car
 #define MAX_DISTANCE_CM     450 // 5m max
-#define FAR_THRESHOLD       50  //300
-#define CAPTURE_THRESHOLD   25   ///110
+#define FAR_THRESHOLD       60  //300
+#define CAPTURE_THRESHOLD   30   ///175
 #define NEAR_THRESHOLD      10      //50
 #define THRESHOLD_OFFSET    5       //30
 
@@ -36,18 +48,28 @@
 #define OFF     0
 #define ON      1
 
-// For checkin state
-#define NO_CHECKIN      0
-#define SHALL_CHECKIN   1
-#define PREP_CHECKIN    2
-#define DONE_CHECKIN    3
+#define TRUE true
+#define FALSE false
 
-// For checkout state
+#define ERROR_THRESHOLD 10
 
-#define NO_CHECKOUT     0
-#define SHALL_CHECKOUT  1
-#define PREP_CHECKOUT   2
-#define DONE_CHECKOUT   3
+
+// // For checkin state
+// #define NO_CHECKIN      0
+// #define SHALL_CHECKIN   1
+// #define PREP_CHECKIN    2
+// #define DONE_CHECKIN    3
+
+// // For checkout state
+
+// #define NO_CHECKOUT     0
+// #define SHALL_CHECKOUT  1
+// #define PREP_CHECKOUT   2
+// #define DONE_CHECKOUT   3
+
+
+
+
 
 #define TAG_WIFI    "FROM WIFI"
 #define TAG_POST    "FROM HTTP POST"
@@ -87,9 +109,9 @@ typedef struct {
 // Appendable PIN......
 typedef struct {
     gpio_num_t reader_trigger_pin;
+    gpio_num_t LED_Wifi_Status;
+    gpio_num_t LED_Sensor_Status;
 } gpio_serveral;
-
-
 
 
 char request_msg[1024];
@@ -104,6 +126,20 @@ uint8_t capture_done;
 uint8_t readtag_done;
 uint8_t postimage_done;
 uint8_t postetag_done;
+uint8_t ERROR_COUNT;
+
+
+uint8_t NO_CHECKIN;
+uint8_t SHALL_CHECKIN;
+uint8_t PREP_CHECKIN;
+uint8_t DONE_CHECKIN;
+
+uint8_t NO_CHECKOUT;
+uint8_t SHALL_CHECKOUT;
+uint8_t PREP_CHECKOUT;
+uint8_t DONE_CHECKOUT;
+
+
 
 server server_infor;
 uart_pin uart0;
@@ -116,7 +152,18 @@ struct in_addr *addr;
 
 int status;
 
-void http_post_task(char *tagID, char *path);
+/**
+ * @brief Post JSON data from MCU node to Server using HTTP POST method.
+ *  
+ * @param tagID Char pointer variable store EPC code that read from ETAG 
+ * attached on CAR by UHF Reader.
+ * E.g: E2 80 69 95 00 00 40 03 75 57 41 70 (in Hexa form)
+ * 
+ * @param path Char pointer variable store ROUTE in Server that determine 
+ * JSON file will be POST using this PATH
+ * E.g: "/check-in/check-in-area"
+ */
+void http_post_tagdata(char *tagID, char *path);
 
 
 

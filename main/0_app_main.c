@@ -4,7 +4,7 @@
 #include "header.h"
 
 server server_infor = {
-    .web_server = "192.168.1.8",
+    .web_server = "192.168.1.3",
     .web_port = "3000",
     .post_image_checkin_path = "/check-in-out-image/check-in",
     .post_image_checkout_path = "/check-in-out-image/check-out",
@@ -28,10 +28,15 @@ sensor_pin sensor0 = {
 
 
 gpio_serveral gpio0 = {
-    .reader_trigger_pin = GPIO_NUM_12
+    .reader_trigger_pin = GPIO_NUM_12,
+    .LED_Wifi_Status = GPIO_NUM_14,
+    .LED_Sensor_Status = GPIO_NUM_2
 };
 #endif
 
+void disable_mcu_pin(){
+
+}
 
 
 void app_main(void)
@@ -40,13 +45,19 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
+    
     gpio_pad_select_gpio (gpio0.reader_trigger_pin);
     gpio_set_direction(gpio0.reader_trigger_pin, GPIO_MODE_OUTPUT);
     gpio_set_level(gpio0.reader_trigger_pin, 0);
 
-    // gpio_pad_select_gpio (gpio0.gnd_extend);
-    // gpio_set_direction(gpio0.gnd_extend, GPIO_MODE_OUTPUT);
-    // gpio_set_level(gpio0.gnd_extend, 0);
+    gpio_pad_select_gpio (gpio0.LED_Wifi_Status);
+    gpio_set_direction(gpio0.LED_Wifi_Status, GPIO_MODE_OUTPUT);
+    gpio_set_level(gpio0.LED_Wifi_Status, 1);
+
+    gpio_pad_select_gpio (gpio0.LED_Sensor_Status);
+    gpio_set_direction(gpio0.LED_Sensor_Status, GPIO_MODE_OUTPUT);
+    gpio_set_level(gpio0.LED_Sensor_Status, 1);
+
 
     allow_reader = OFF;
     allow_camera = OFF;
@@ -55,12 +66,26 @@ void app_main(void)
     postetag_done = false;
     postimage_done = false;
 
-    esp_err_t err;
+
+    NO_CHECKIN = OFF;
+    SHALL_CHECKIN = OFF;
+    PREP_CHECKIN = OFF;
+    DONE_CHECKIN = OFF;
+
+    NO_CHECKOUT = OFF;
+    SHALL_CHECKOUT = OFF;
+    PREP_CHECKOUT = OFF;
+    DONE_CHECKOUT = OFF;
+
+    ERROR_COUNT = 0;
+
     if (wifi_connect() == ESP_OK)
     {
-        if (init_camera() != ESP_OK)
+        gpio_set_level(gpio0.LED_Wifi_Status, 0);
+
+        if (initiate_camera() != ESP_OK)
         {
-            printf("error while init camera: %s\n", esp_err_to_name(init_camera()));
+            printf("error while init camera.\n");
             return;
         }
         ESP_ERROR_CHECK(init_uart());
@@ -76,6 +101,8 @@ void app_main(void)
 
         ESP_LOGI(TAG_CAM, "Tasks is created and running\n");
     }
-    else
-    ESP_LOGI(TAG_CAM, "Failed to connected with Wi-Fi\n");
+    else{
+        gpio_set_level(gpio0.LED_Wifi_Status, 1);
+        ESP_LOGI(TAG_CAM, "Failed to connected with Wi-Fi\n");
+    }
 }

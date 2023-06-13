@@ -1,6 +1,6 @@
 #include "header.h"
 
-esp_err_t init_camera(void)
+esp_err_t initiate_camera(void)
 {
     camera_config_t camera_config = {
         .pin_pwdn  = CAM_PIN_PWDN,
@@ -159,35 +159,46 @@ void jpg_capture(){
         // condition for checkin/out state?
         static camera_fb_t * fb = NULL; 
 
-        if((checkin_state == PREP_CHECKIN || checkout_state == PREP_CHECKOUT) && allow_camera == ON){
+        if((PREP_CHECKIN == ON || PREP_CHECKOUT == ON) && allow_camera == ON && capture_done == false){
+            esp_camera_fb_return(fb);
             fb = esp_camera_fb_get();
             if (!fb) {
+                capture_done = false;
                 ESP_LOGE(TAG_CAM, "Camera capture failed");
             }
             else{
                 capture_done = true;
                 ESP_LOGI(TAG_CAM, "Camera capture success!");
             }
-        }else if((checkin_state == DONE_CHECKIN || checkout_state == DONE_CHECKOUT) && capture_done == true){
-                ESP_LOGI(TAG_CAM, "Posting Image!");
+        }else if((DONE_CHECKIN == ON || DONE_CHECKOUT == ON) && capture_done == true){
+                ESP_LOGI(TAG_CAM, "Uploading Image!");
                 #ifdef POSITION == GATE 
                     #ifdef TYPE == CHECKIN
-                        if(checkin_state == DONE_CHECKIN){
+                        if(DONE_CHECKIN == ON){
                             http_post_image(fb, server_infor.post_image_checkin_path);
                         }
                     #elif TYPE == CHECKOUT
-                        if(checkout_state == DONE_CHECKOUT){
+                        if(DONE_CHECKOUT == ON){
+                            http_post_image(fb, server_infor.post_image_checkout_path);
+                        }
+                    #elif TYPE == CHECKIN_OUT
+                        if(DONE_CHECKIN == ON){
+                            http_post_image(fb, server_infor.post_image_checkin_path);
+                        }
+                        if(DONE_CHECKOUT == ON){
                             http_post_image(fb, server_infor.post_image_checkout_path);
                         }
                     #endif
+                #elif POSITION == AREA
+                    if(DONE_CHECKIN == ON){
+                        http_post_image(fb, server_infor.post_image_checkin_path);
+                    }
+                    if(DONE_CHECKOUT == ON){
+                        http_post_image(fb, server_infor.post_image_checkout_path);
+                    }
                 #endif
 
-                // if(checkin_state == DONE_CHECKIN){
-                //     http_post_image(fb, server_infor.post_image_checkin_path);
-                // }
-                // if(checkout_state == DONE_CHECKOUT){
-                //     http_post_image(fb, server_infor.post_image_checkout_path);
-                // }
+
                 // http_post_image(fb, server_infor.post_image_path);
 
                 postimage_done = true;

@@ -41,10 +41,13 @@ void ultrasonic_init(const ultrasonic_sensor_t *dev);
  * \param max_distance Maximal distance to measure, centimeters
  * \return Distance in centimeters or ULTRASONIC_ERROR_xxx if error occured
  */
-esp_err_t ultrasonic_measure_cm(const ultrasonic_sensor_t *dev, uint32_t max_distance, uint32_t *distance);
+esp_err_t ultrasonic_measure_cm(const ultrasonic_sensor_t **dev, uint32_t max_distance, uint32_t *distance);
 
 
 void ultrasonic(void *pvParamters);
+
+
+esp_err_t get_distance_value(const ultrasonic_sensor_t *dev, uint32_t *avg_distance);
 
 #ifdef __cplusplus
 }

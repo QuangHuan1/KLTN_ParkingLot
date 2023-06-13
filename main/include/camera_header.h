@@ -61,10 +61,29 @@ extern "C" {
 // static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n";
 
 
+/**
+ * @brief Function call to INITIATE ESP32 CAMERA
+ * 
+ * @return ESP_OK on successful initiation
+ */
+esp_err_t initiate_camera(void);
 
-esp_err_t init_camera(void);
-esp_err_t setup_server(void);
+/**
+ * @brief Post IMAGE captured from MCU node to Server using HTTP POST method.
+ *  
+ * @param fb Object store camera frame buffer captured from ESP32CAM.
+ * E.g: This is an image.
+ * 
+ * @param path Char pointer variable store ROUTE in Server that determine 
+ * IMAGE will be POST using this PATH
+ * E.g: "/check-in-out-image/check-in"
+ */
 void http_post_image(camera_fb_t *fb, char *path);
+
+/**
+ * @brief One of Main tasks that control Image capture task and OPLOAD 
+ * this image to Server.
+ */
 void jpg_capture();
 
 
