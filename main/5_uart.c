@@ -38,17 +38,17 @@ esp_err_t init_uart(void) {
 void rx_task(void *arg)
 {   
 
-    esp_log_level_set(TAG_UART, ESP_LOG_INFO);
+    // esp_log_level_set(TAG_UART, ESP_LOG_INFO);
     uint8_t* rx_data = (uint8_t*) malloc(RX_BUF_SIZE+1);
     
     while (1) {
 
-        if((PREP_CHECKIN == ON || PREP_CHECKOUT == ON) && allow_reader == ON && readtag_done == false){
+        if((PREP_CHECKIN == TRUE || PREP_CHECKOUT == TRUE) && allow_reader == TRUE && readtag_done == false){
             gpio_set_level(gpio0.reader_trigger_pin, 1);
-            vTaskDelay(100/portTICK_PERIOD_MS);
+            vTaskDelay(20/portTICK_PERIOD_MS);
             gpio_set_level(gpio0.reader_trigger_pin, 0);
-            const int rxBytes = uart_read_bytes(uart0.uart_num, rx_data, RX_BUF_SIZE, 1000 / portTICK_RATE_MS);
-            ESP_LOGI(TAG_UART, "Read %d bytes\n", rxBytes);
+            const int rxBytes = uart_read_bytes(uart0.uart_num, rx_data, RX_BUF_SIZE, 30 / portTICK_RATE_MS);
+            ESP_LOGW(TAG_UART, "Read %d bytes\n", rxBytes);
 
             if (rxBytes > 0 && rxBytes < 25) {
                 rx_data[rxBytes] = 0;
@@ -64,51 +64,56 @@ void rx_task(void *arg)
                 }
 
                 hexStr[j] = '\0';
-                ESP_LOGI(TAG_UART, "-------Hexa String: %s", hexStr);
+                ESP_LOGI(TAG_UART, "Hexa String: %s", hexStr);
                 readtag_done = true;
 
             }
+            vTaskDelay(DELAY_TIME / portTICK_PERIOD_MS);
 
-        } else if ((DONE_CHECKIN == ON || DONE_CHECKOUT == ON) && postimage_done == true && readtag_done == true){
+        } else if ((DONE_CHECKIN == TRUE || DONE_CHECKOUT == TRUE) && postimage_done == true && readtag_done == true){
+        // } else if (postimage_done == true && readtag_done == true){
+
             ESP_LOGI(TAG_CAM, "Uploading E-TAG data!");
 
-            #ifdef POSITION == GATE 
-                #ifdef TYPE == CHECKIN
-                    if(DONE_CHECKIN == ON){
-                        http_post_tagdata(hexStr, server_infor.post_checkin_path);
-                    }
-                #elif TYPE == CHECKOUT
-                    if(DONE_CHECKOUT == ON){
-                        http_post_tagdata(hexStr, server_infor.post_checkout_path);
-                    }
-                #elif TYPE == CHECKIN_OUT
-                    if(DONE_CHECKIN == ON){
-                        http_post_tagdata(hexStr, server_infor.post_checkin_path);
-                    }
-                    if(DONE_CHECKOUT == ON){
-                        http_post_tagdata(hexStr, server_infor.post_checkout_path);
-                    }
-                #endif
-            #elif POSITION == AREA
-                    if(DONE_CHECKIN == ON){
-                        http_post_tagdata(hexStr, server_infor.post_checkin_area_path);
-                    }
-                    if(DONE_CHECKOUT == ON){
-                        http_post_tagdata(hexStr, server_infor.post_checkout_area_path);
-                    }
-            #endif
-                if(DONE_CHECKIN == ON){
+            // #ifdef POSITION == GATE 
+            //     #ifdef TYPE == CHECKIN
+            //         if(DONE_CHECKIN == TRUE){
+            //             http_post_tagdata(hexStr, server_infor.post_checkin_path);
+            //         }
+            //     #elif TYPE == CHECKOUT
+            //         if(DONE_CHECKOUT == TRUE){
+            //             http_post_tagdata(hexStr, server_infor.post_checkout_path);
+            //         }
+            //     #elif TYPE == CHECKIN_OUT
+            //         if(DONE_CHECKIN == TRUE){
+            //             http_post_tagdata(hexStr, server_infor.post_checkin_path);
+            //         }
+            //         if(DONE_CHECKOUT == TRUE){
+            //             http_post_tagdata(hexStr, server_infor.post_checkout_path);
+            //         }
+            //     #endif
+            // #elif POSITION == AREA
+            //         if(DONE_CHECKIN == TRUE){
+            //             http_post_tagdata(hexStr, server_infor.post_checkin_area_path);
+            //         }
+            //         if(DONE_CHECKOUT == TRUE){
+            //             http_post_tagdata(hexStr, server_infor.post_checkout_area_path);
+            //         }
+            // #endif
+
+                if(DONE_CHECKIN == TRUE){
                     http_post_tagdata(hexStr, server_infor.post_checkin_path);
                 }
-                if(DONE_CHECKOUT == ON){
+                if(DONE_CHECKOUT == TRUE){
                     http_post_tagdata(hexStr, server_infor.post_checkout_path);
                 }
+
                 allow_reader = OFF;
-                readtag_done = false;
-                postimage_done = false;
-                postetag_done = true;
+                readtag_done = FALSE;
+                postimage_done = FALSE;
+                postetag_done = TRUE;
         }
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        vTaskDelay(DELAY_TIME / portTICK_PERIOD_MS);
     }
 }
 
@@ -119,7 +124,7 @@ void http_post_tagdata(char *tagID, char *path)
         .ai_socktype = SOCK_STREAM,
     };
     uint8_t count_loop = 0;
-    while(count_loop <= 3) {
+    while(count_loop <= 5) {
         count_loop++;
         int err = getaddrinfo(server_infor.web_server, server_infor.web_port, &hints, &res);
         if(err != 0 || res == NULL) {
@@ -183,10 +188,6 @@ void http_post_tagdata(char *tagID, char *path)
                                        tagID, AREACODE);
         }
 
-
-        // sprintf(request_content, "{\"eTag\":\"%s\", \"%s\":\"%s\", \"gateCode\":\"%s\", \"areaCode\":\"%s\", \"imageCode\":\"%s\"}", 
-        //                            tagID, timefield, Current_Date_Time_Raw, GATECODE, areaCode, Current_Date_Time);
-
         printf("%s\n",request_content);
         sprintf(request_msg, "POST %s HTTP/1.1\r\n"
                         "Host: %s:%s\r\n"
@@ -205,8 +206,7 @@ void http_post_tagdata(char *tagID, char *path)
             continue;
         }
         ESP_LOGI(TAG_POST, "... socket send success");
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
-        ESP_LOGI(TAG_POST, "Starting again!");
+        vTaskDelay(100 / portTICK_PERIOD_MS);
         break;
     }
 }

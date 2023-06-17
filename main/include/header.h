@@ -24,24 +24,24 @@
 
 // Declare Gate and Area Code Khu E
 #define GATECODE_CHECKIN    "MC00"
-#define GATECODE_CHECKOUT    "MC01"
-#define AREACODE    "MK00"
-#define REAL_AREACODE    "MK01"
+#define GATECODE_CHECKOUT   "MC01"
+#define AREACODE            "MK00"
+#define REAL_AREACODE       "MK01"
 
 
 // // Declare Gate and Area Code Khu B
 // #define GATECODE_CHECKIN    "MC00"
 // #define GATECODE_CHECKOUT    "MC01"
-// #define AREACODE    "MK00"
+// #define AREACODE         "MK00"
 // #define REAL_AREACODE    "MK02"
 
 
 //Define distance for tracking car
-#define MAX_DISTANCE_CM     450 // 5m max
-#define FAR_THRESHOLD       60  //300
-#define CAPTURE_THRESHOLD   30   ///175
-#define NEAR_THRESHOLD      10      //50
-#define THRESHOLD_OFFSET    5       //30
+#define MAX_DISTANCE_CM     450     // 5m max
+#define FAR_THRESHOLD       270     //240 - 300
+#define CAPTURE_THRESHOLD   170     //140 - 200
+#define NEAR_THRESHOLD      70      //40 - 100
+#define THRESHOLD_OFFSET    30      //30
 
 #define BOUNDARY "X-ESPIDF_MULTIPART"
 
@@ -51,23 +51,8 @@
 #define TRUE true
 #define FALSE false
 
-#define ERROR_THRESHOLD 10
-
-
-// // For checkin state
-// #define NO_CHECKIN      0
-// #define SHALL_CHECKIN   1
-// #define PREP_CHECKIN    2
-// #define DONE_CHECKIN    3
-
-// // For checkout state
-
-// #define NO_CHECKOUT     0
-// #define SHALL_CHECKOUT  1
-// #define PREP_CHECKOUT   2
-// #define DONE_CHECKOUT   3
-
-
+#define ERROR_THRESHOLD 5
+#define DELAY_TIME 50
 
 
 
@@ -126,7 +111,6 @@ uint8_t capture_done;
 uint8_t readtag_done;
 uint8_t postimage_done;
 uint8_t postetag_done;
-uint8_t ERROR_COUNT;
 
 
 uint8_t NO_CHECKIN;
@@ -139,6 +123,8 @@ uint8_t SHALL_CHECKOUT;
 uint8_t PREP_CHECKOUT;
 uint8_t DONE_CHECKOUT;
 
+esp_err_t wifi_err;
+esp_err_t sensor_err;
 
 
 server server_infor;
@@ -164,6 +150,16 @@ int status;
  * E.g: "/check-in/check-in-area"
  */
 void http_post_tagdata(char *tagID, char *path);
+
+
+/**
+ * @brief Drive lamp to indicate error case.
+ *  
+ * @param arg none parameter used.
+ *
+ */
+void indicator(void *arg);
+
 
 
 

@@ -51,7 +51,7 @@ void http_post_image(camera_fb_t *fb, char *path)
     //while(1){
     uint8_t count_loop = 0;
 
-    while(count_loop <= 3) {
+    while(count_loop <= 5) {
         count_loop++;
         int err = getaddrinfo(server_infor.web_server, server_infor.web_port, &hints, &res);
         if(err != 0 || res == NULL) {
@@ -78,12 +78,12 @@ void http_post_image(camera_fb_t *fb, char *path)
             ESP_LOGE(TAG_CAM, "... socket connect failed errno=%d", errno);
             close(status);
             freeaddrinfo(res);
-            vTaskDelay(4000 / portTICK_PERIOD_MS);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;
         }
 
         ESP_LOGI(TAG_CAM, "... connected");
-        freeaddrinfo(res);
+        // freeaddrinfo(res);
 
         char HEADER[512];
         char header[512];
@@ -119,7 +119,7 @@ void http_post_image(camera_fb_t *fb, char *path)
         if (write(status, HEADER, strlen(HEADER)) < 0) {
             ESP_LOGE(TAG_CAM, "... socket1 send failed");
             close(status);
-            vTaskDelay(4000 / portTICK_PERIOD_MS);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;
         }
 
@@ -127,7 +127,7 @@ void http_post_image(camera_fb_t *fb, char *path)
         if (write(status, BODY, strlen(BODY)) < 0) {
             ESP_LOGE(TAG_CAM, "... socket2 send failed");
             close(status);
-            vTaskDelay(4000 / portTICK_PERIOD_MS);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;
         }
 
@@ -135,19 +135,20 @@ void http_post_image(camera_fb_t *fb, char *path)
         if (write(status,(const char *)fb->buf, fbLen) < 0) {
             ESP_LOGE(TAG_CAM, "... socket3 send failed");
             close(status);
-            vTaskDelay(4000 / portTICK_PERIOD_MS);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;
         }
 
         if (write(status, END, strlen(END)) < 0) {
             ESP_LOGE(TAG_CAM, "... socket6 send failed");
             close(status);
-            vTaskDelay(4000 / portTICK_PERIOD_MS);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;
         }
 
         ESP_LOGI(TAG_CAM, "Starting again!");
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
+
         close(status);
         break;
     }
@@ -170,49 +171,51 @@ void jpg_capture(){
                 capture_done = true;
                 ESP_LOGI(TAG_CAM, "Camera capture success!");
             }
+            vTaskDelay(DELAY_TIME / portTICK_PERIOD_MS);
         }else if((DONE_CHECKIN == ON || DONE_CHECKOUT == ON) && capture_done == true){
                 ESP_LOGI(TAG_CAM, "Uploading Image!");
-                #ifdef POSITION == GATE 
-                    #ifdef TYPE == CHECKIN
-                        if(DONE_CHECKIN == ON){
-                            http_post_image(fb, server_infor.post_image_checkin_path);
-                        }
-                    #elif TYPE == CHECKOUT
-                        if(DONE_CHECKOUT == ON){
-                            http_post_image(fb, server_infor.post_image_checkout_path);
-                        }
-                    #elif TYPE == CHECKIN_OUT
-                        if(DONE_CHECKIN == ON){
-                            http_post_image(fb, server_infor.post_image_checkin_path);
-                        }
-                        if(DONE_CHECKOUT == ON){
-                            http_post_image(fb, server_infor.post_image_checkout_path);
-                        }
-                    #endif
-                #elif POSITION == AREA
-                    if(DONE_CHECKIN == ON){
-                        http_post_image(fb, server_infor.post_image_checkin_path);
-                    }
-                    if(DONE_CHECKOUT == ON){
-                        http_post_image(fb, server_infor.post_image_checkout_path);
-                    }
-                #endif
+                // #ifdef POSITION == GATE 
+                //     #ifdef TYPE == CHECKIN
+                //         if(DONE_CHECKIN == ON){
+                //             http_post_image(fb, server_infor.post_image_checkin_path);
+                //         }
+                //     #elif TYPE == CHECKOUT
+                //         if(DONE_CHECKOUT == ON){
+                //             http_post_image(fb, server_infor.post_image_checkout_path);
+                //         }
+                //     #elif TYPE == CHECKIN_OUT
+                //         if(DONE_CHECKIN == ON){
+                //             http_post_image(fb, server_infor.post_image_checkin_path);
+                //         }
+                //         if(DONE_CHECKOUT == ON){
+                //             http_post_image(fb, server_infor.post_image_checkout_path);
+                //         }
+                //     #endif
+                // #elif POSITION == AREA
+                //     if(DONE_CHECKIN == ON){
+                //         http_post_image(fb, server_infor.post_image_checkin_path);
+                //     }
+                //     if(DONE_CHECKOUT == ON){
+                //         http_post_image(fb, server_infor.post_image_checkout_path);
+                //     }
+                // #endif
 
+                if(DONE_CHECKIN == ON){
+                    http_post_image(fb, server_infor.post_image_checkin_path);
+                }
+                if(DONE_CHECKOUT == ON){
+                    http_post_image(fb, server_infor.post_image_checkout_path);
+                }
 
-                // http_post_image(fb, server_infor.post_image_path);
 
                 postimage_done = true;
-                allow_camera = OFF;
+                allow_camera = FALSE;
                 capture_done = false;
                 esp_camera_fb_return(fb);
         }
-        else{
-            esp_camera_fb_return(fb);
-        }
-
 
         ESP_LOGE(TAG_CAM, "Vehicle Not Detected!");
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
+        vTaskDelay(DELAY_TIME / portTICK_PERIOD_MS);
     }
 }
 

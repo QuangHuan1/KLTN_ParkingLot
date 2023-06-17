@@ -4,7 +4,7 @@
 #include "header.h"
 
 server server_infor = {
-    .web_server = "192.168.1.3",
+    .web_server = "192.168.1.8",
     .web_port = "3000",
     .post_image_checkin_path = "/check-in-out-image/check-in",
     .post_image_checkout_path = "/check-in-out-image/check-out",
@@ -34,10 +34,6 @@ gpio_serveral gpio0 = {
 };
 #endif
 
-void disable_mcu_pin(){
-
-}
-
 
 void app_main(void)
 {
@@ -45,7 +41,6 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-    
     gpio_pad_select_gpio (gpio0.reader_trigger_pin);
     gpio_set_direction(gpio0.reader_trigger_pin, GPIO_MODE_OUTPUT);
     gpio_set_level(gpio0.reader_trigger_pin, 0);
@@ -58,51 +53,52 @@ void app_main(void)
     gpio_set_direction(gpio0.LED_Sensor_Status, GPIO_MODE_OUTPUT);
     gpio_set_level(gpio0.LED_Sensor_Status, 1);
 
+    wifi_err = 1;
+    sensor_err = 1;
+    xTaskCreatePinnedToCore(&indicator, "indicator", 1024, NULL, 1, NULL, 0);
 
-    allow_reader = OFF;
-    allow_camera = OFF;
-    capture_done = false;
-    readtag_done = false;
-    postetag_done = false;
-    postimage_done = false;
+    allow_reader = FALSE;
+    allow_camera = FALSE;
+    capture_done = FALSE;
+    readtag_done = FALSE;
+    postetag_done = FALSE;
+    postimage_done = FALSE;
+
+    NO_CHECKIN = FALSE;
+    SHALL_CHECKIN = FALSE;
+    PREP_CHECKIN = FALSE;
+    DONE_CHECKIN = FALSE;
+
+    NO_CHECKOUT = FALSE;
+    SHALL_CHECKOUT = FALSE;
+    PREP_CHECKOUT = FALSE;
+    DONE_CHECKOUT = FALSE;
+    // esp_log_level_set("*", ESP_LOG_INFO);
+    esp_log_level_set("*", ESP_LOG_NONE);
 
 
-    NO_CHECKIN = OFF;
-    SHALL_CHECKIN = OFF;
-    PREP_CHECKIN = OFF;
-    DONE_CHECKIN = OFF;
-
-    NO_CHECKOUT = OFF;
-    SHALL_CHECKOUT = OFF;
-    PREP_CHECKOUT = OFF;
-    DONE_CHECKOUT = OFF;
-
-    ERROR_COUNT = 0;
-
-    if (wifi_connect() == ESP_OK)
+    // ERROR_COUNT = 0;
+    wifi_err = wifi_connect();
+    if (wifi_err == ESP_OK)
     {
-        gpio_set_level(gpio0.LED_Wifi_Status, 0);
-
         if (initiate_camera() != ESP_OK)
         {
-            printf("error while init camera.\n");
+            ESP_LOGE(TAG_CAM, "Error while init camera.\n");
             return;
         }
         ESP_ERROR_CHECK(init_uart());
         Set_SystemTime_SNTP();
 
-        // ESP_ERROR_CHECK(setup_server());
-        // xTaskCreate(&tx_task, "tx_task", 2048, NULL, 5, NULL);
         vTaskDelay(500 / portTICK_PERIOD_MS);
         
-        xTaskCreatePinnedToCore(&ultrasonic, "ultrasonic", 1024*3, NULL, 1, NULL, 0);
-        xTaskCreatePinnedToCore(&jpg_capture, "jpg_capture", 1024*4, NULL, 3, NULL, 0);
+        xTaskCreatePinnedToCore(&ultrasonic, "ultrasonic", 1024*3, NULL, 0, NULL, 0);
+        // xTaskCreatePinnedToCore(&indicator, "indicator", 1024, NULL, 1, NULL, 0);
+        xTaskCreatePinnedToCore(&jpg_capture, "jpg_capture", 1024*4, NULL, 0, NULL, 1);
         xTaskCreatePinnedToCore(&rx_task, "rx_task", 1024*2, NULL, 1, NULL, 1);
 
         ESP_LOGI(TAG_CAM, "Tasks is created and running\n");
     }
     else{
-        gpio_set_level(gpio0.LED_Wifi_Status, 1);
         ESP_LOGI(TAG_CAM, "Failed to connected with Wi-Fi\n");
     }
 }
