@@ -1,0 +1,523 @@
+
+<!-- Page Wrapper -->
+<div id="wrapper">
+
+    <!-- Sidebar -->
+    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+        <!-- Sidebar - Brand -->
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
+            <div class="sidebar-brand-icon">
+                <i class="fas fa-fw fa-light fa-car"></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">Car Parking</div>
+        </a>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider my-0">
+
+        <!-- Nav Item - Dashboard -->
+        <li class="nav-item">
+            <a class="nav-link" href="/">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span></a>
+        </li>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+
+        <!-- Nav Item - Car Information Menu -->
+        <li class="nav-item">
+            <a class="nav-link" href="/car-info">
+                <i class="fas fa-fw fa-table"></i>
+                <span>Car Information</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Owner Menu -->
+        <li class="nav-item">
+            <a class="nav-link" href="/owner">
+                <i class="fas fa-fw fa-regular fa-address-card"></i>
+                <span>Owners</span>
+            </a>
+        </li>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+
+        <!-- Nav Item - Check-in Menu -->
+        <li class="nav-item active">
+            <a class="nav-link" href="/check-in">
+                <i class="fas fa-fw fa-solid fa-angles-right"></i>
+                <span>Check-in-out</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Check-in Menu -->
+        <li class="nav-item">
+            <a class="nav-link" href="/bill">
+                <i class="fas fa-fw fa-thin fa-money-bill"></i>
+                <span>Bills</span>
+            </a>
+        </li>
+        
+
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+
+        <!-- Nav Item - Gate Menu -->
+        <li class="nav-item">
+            <a class="nav-link" href="/gate">
+                <i class="fa-fw fa-solid fa-road-barrier"></i>
+                <span>Gates</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Areas Menu -->
+        <li class="nav-item">
+            <a class="nav-link" href="/area">
+                <i class="fas fa-fw fa-light fa-clone"></i>
+                <span>Areas</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Devices Menu -->
+        <li class="nav-item">
+            <a class="nav-link" href="/device">
+                <i class="fa-fw fa-solid fa-microchip"></i>
+                <span>Devices</span>
+            </a>
+        </li>
+
+        <div class="text-center d-none d-md-inline">
+            <button class="rounded-circle border-0" id="sidebarToggle"></button>
+        </div>
+
+    </ul>
+    <!-- End of Sidebar -->
+
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+
+        <!-- Main Content -->
+        <div id="content">
+
+            <!-- Topbar -->
+            <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+                <!-- Sidebar Toggle (Topbar) -->
+                <form class="form-inline">
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                </form>
+
+                <!-- Topbar Navbar -->
+                <ul class="navbar-nav ml-auto">
+
+                    <!-- Nav Item - Search Dropdown (Visible Only XS) -->
+                    <li class="nav-item dropdown no-arrow d-sm-none">
+                        <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <!-- Dropdown - Messages -->
+                        <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
+                            aria-labelledby="searchDropdown">
+                            <form class="form-inline mr-auto w-100 navbar-search">
+                                <div class="input-group">
+                                    <input type="text" class="form-control bg-light border-0 small"
+                                        placeholder="Search for..." aria-label="Search"
+                                        aria-describedby="basic-addon2">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary" type="button">
+                                            <i class="fas fa-search fa-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </li>
+
+                    
+
+                    <div class="topbar-divider d-none d-sm-block"></div>
+
+                    <!-- Nav Item - User Information -->
+                    <li class="nav-item dropdown no-arrow">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span id="username" class="mr-2 d-none d-lg-inline text-gray-600 small"></span>
+                            <img class="img-profile rounded-circle"
+                                src="/bootstrap-template/img/undraw_profile.svg">
+                        </a>
+                        <!-- Dropdown - User Information -->
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                            aria-labelledby="userDropdown">
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                Logout
+                            </a>
+                        </div>
+                    </li>
+
+                </ul>
+
+            </nav>
+            <!-- End of Topbar -->
+
+            <!-- Begin Page Content -->
+            <div class="container-fluid">
+
+                <!-- Page Heading -->
+                <h1 class="h3 mb-2 text-gray-800">Check-in-out</h1>
+
+
+                <!-- DataTales Example -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-2 font-weight-bold text-primary" style="display:inline-block;">List of check-in-out</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered hover" id="checkinTable" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>Check-in-out code</th>
+                                        <th>E-tag</th>
+                                        <th>License Number</th>
+                                        <th>Gate code in</th>
+                                        <th>Gate code out</th>
+                                        <th>Check-in time</th>
+                                        <th>Check-out time</th>
+                                        <th>Area code</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th>Check-in-out code</th>
+                                        <th>E-tag</th>
+                                        <th>License Number</th>
+                                        <th>Gate code in</th>
+                                        <th>Gate code out</th>
+                                        <th>Check-in time</th>
+                                        <th>Check-out time</th>
+                                        <th>Area code</th>
+                                    </tr>
+                                </tfoot>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- /.container-fluid -->
+
+        </div>
+        <!-- End of Main Content -->
+
+        <!-- Footer -->
+        <footer class="sticky-footer bg-white">
+            <div class="container my-auto">
+                <div class="copyright text-center my-auto">
+                    <span>Copyright &copy; Quang Quyen 2023</span>
+                </div>
+            </div>
+        </footer>
+        <!-- End of Footer -->
+
+    </div>
+    <!-- End of Content Wrapper -->
+
+</div>
+<!-- End of Page Wrapper -->
+
+<!-- Scroll to Top Button-->
+<a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+</a>
+
+<!-- Logout Modal-->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <a id="log-out" class="btn btn-primary" onclick="location.href='/login'">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Check-in Information Modal-->
+<div class="modal fade bd-example-modal-xl" id="carInfoModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Car Information</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+
+                <div class="container">
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="videoId">E-Tag</label>
+                            <input type="text" class="form-control" disabled value = "" id="eTagCheckinModal" name="eTagCheckinModal">
+                        </div>
+                        </div>
+
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="videoId">License number</label>
+                                <input type="text" class="form-control" disabled value = "" id="licenseNumCheckinModal" name="licenseNumCheckinModal">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="videoId">Area code</label>
+                                <input type="text" class="form-control" disabled value = "" id="areaCodeCheckinModal" name="areaCodeCheckinModal">
+                            </div> 
+                        </div>
+
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="videoId">Parking duration (d/h/m/s) </label>
+                                <input type="text" class="form-control" disabled value = "" id="parkingTimeCheckinModal" name="areaCodeCheckinModal">
+                            </div> 
+                        </div>
+                    </div>
+                    <div class="card border-primary mb-3" >
+                        <div class="card-header">Check-in</div>
+                        <div class="card-body">
+                            <div class="row">    
+                                <div class="col-4">                         
+                                    <div class="form-group">
+                                        <label for="description">Gate code</label>
+                                        <input type="text" class="form-control" disabled value = "" id="gateCodeCheckinModal" name="gateCodeCheckinModal">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="videoId">Check-in time</label>
+                                        <input type="text" class="form-control" disabled value = "" id="checkinTimeCheckinModal" name="checkinTimeCheckinModal">
+                                    </div>                         
+                                </div>
+                                <div class="col-8">
+
+                                    <figure class="figure" style="margin-top: 20px">
+                                        <img src="" class="figure-img img-fluid rounded" id = "checkinImage" alt="...">
+                                        <figcaption>Check-in Image</figcaption>
+                                    </figure>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-primary mb-3" >
+                        <div class="card-header">Check-out</div>
+                        <div class="card-body">
+                            <div class="row">    
+                                <div class="col-4">                         
+                                    <div class="form-group">
+                                        <label for="description">Gate code</label>
+                                        <input type="text" class="form-control" disabled value = "" id="gateCodeOutCheckinModal" name="gateCodeOutCheckinModal">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="videoId">Check-out time</label>
+                                        <input type="text" class="form-control" disabled value = "" id="checkoutTimeCheckinModal" name="checkoutTimeCheckinModal">
+                                    </div>                    
+                                </div>
+                                <div class="col-8">
+
+                                    <figure class="figure" style="margin-top: 20px">
+                                        <img src="" class="figure-img img-fluid rounded" id = "checkoutImage" alt="...">
+                                        <figcaption>Check-out Image</figcaption>
+                                    </figure>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>                
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Alarm Modal-->
+<div class="modal fade" id="alarmModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Alarm</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body" id="messageAlarmModal"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Bootstrap core JavaScript-->
+<script src="/bootstrap-template/vendor/jquery/jquery.min.js"></script>
+<script src="/bootstrap-template/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Core plugin JavaScript-->
+<script src="/bootstrap-template/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+<!-- Custom scripts for all pages-->
+<script src="/bootstrap-template/js/sb-admin-2.min.js"></script>
+
+<!-- Page level plugins -->
+<script src="/bootstrap-template/vendor/datatables/jquery.dataTables.min.js"></script>
+<script src="/bootstrap-template/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+
+<!-- Page level custom scripts -->
+<script src="/bootstrap-template/js/demo/datatables-demo.js"></script>
+
+<script>
+    $(document).ready(function () {
+        function getData() {
+            $.ajax({
+                url: "/check-in/data",
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    const output = convertRawDataToTableData(result);
+                    renderTable(output);
+                },
+                error: function (errormessage) {
+                    console.log(errormessage.responseText);
+                },
+                complete: function() {
+                }
+            });
+        };
+
+        function convertRawDataToTableData(input) {
+            let output = [];
+            for (const item of input.checkIns) { 
+                const checkinTime = item.checkinTime.toString().slice(0,-5);
+                const checkoutTime = item.checkoutTime ? item.checkoutTime.toString().slice(0,-5) : "";
+    
+                const row = [item._id, item.eTag, item.carInfo?item.carInfo.licenseNum:"", 
+                item.gate.gateCode, item.gateOut?item.gateOut.gateCode:"", checkinTime, checkoutTime, item.area.areaCode];
+                output.push(row);
+            }
+            return output;
+        }
+
+        function renderTable(data) {
+            $('#checkinTable').DataTable().destroy();
+            $('#checkinTable').DataTable({
+                data: data,
+                order: [[0, 'desc']],
+            });
+        }
+
+        getData();
+
+        // To show dialog
+        var table = $('#checkinTable').DataTable();
+        $('#checkinTable').on('click', 'tbody tr', function() {
+            const checkinCode = $(this).children("td:eq(0)").text()
+            $.ajax({
+                url: "/check-in/" + checkinCode,
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    if (result.checkIn.checkoutTime) {
+                        var parkingTime = Math.abs(new Date(result.checkIn.checkoutTime) - new Date(result.checkIn.checkinTime))
+                        var days = Math.floor(parkingTime/1000/60/60/24);
+                        var hours = Math.floor(parkingTime/1000/60/60) - days*24;
+                        var minutes = Math.floor(parkingTime/1000/60) - hours*60 - days*24*60;
+                        var seconds = Math.floor(parkingTime/1000) - minutes*60 - hours*60*60 - days*24*60*60;
+                    }      
+                    else {
+                        var days = NaN;
+                        var hours = NaN;
+                        var minutes = NaN;
+                        var seconds = NaN;
+                    } 
+
+                    const checkinTime = result.checkIn.checkinTime.toString().slice(0,-5);
+                    const checkoutTime = result.checkIn.checkoutTime ? result.checkIn.checkoutTime.toString().slice(0,-5) : "";
+                    
+                    $('#parkingTimeCheckinModal').val(days + " : " + hours + " : " + minutes + " : " + seconds);
+                    $('#eTagCheckinModal').val(result.checkIn.eTag);
+                    $('#licenseNumCheckinModal').val(result.checkIn.carInfo.licenseNum);
+                    $('#gateCodeCheckinModal').val(result.checkIn.gate.gateCode);
+                    $('#checkinTimeCheckinModal').val(checkinTime);
+                    $('#areaCodeCheckinModal').val(result.checkIn.area.areaCode);
+                    $('#checkinImage').attr('src', '/img/checkin/' + result.checkIn.imageCode + '.jpg');
+                    $('#gateCodeOutCheckinModal').val(result.checkIn.gateOut ? result.checkIn.gateOut.gateCode: '');
+                    $('#checkoutTimeCheckinModal').val(checkoutTime);
+                    $('#checkoutImage').attr('src', '/img/checkout/' + result.checkIn.imageCodeOut + '.jpg');
+                    $('#carInfoModal').modal("show");
+                },
+                error: function (errormessage) {
+                    console.log(errormessage.responseText);
+                },
+                complete: function() {
+                }
+            });
+        })
+       
+        var socket = io();
+        socket.on('newCheckIn', function(signal) {
+            if (signal) getData();
+        });
+
+        // log out
+        $( "#log-out" ).on( "click", () => {
+            localStorage.removeItem("auth");
+        })
+
+        if (JSON.parse(localStorage.getItem("auth"))['username'] === 'admin'){
+            $( "#username" )[0].innerHTML = 'Administrator'
+        }
+        else if (JSON.parse(localStorage.getItem("auth"))['username'] === 'tech'){
+            $( "#username" )[0].innerHTML = 'Technician'
+        }
+        else {
+            $( "#username" )[0].innerHTML = 'Username'
+        }
+
+        socket.on('newCheckout', function(signal) {
+            if (signal) getData();
+        });
+
+        socket.on('alarm', function(signal) {
+            $('#messageAlarmModal')[0].innerHTML = signal.message;
+            $('#alarmModal').modal("show");
+            if (signal) getData();
+        });
+
+
+    });
+</script>

@@ -1,0 +1,190 @@
+
+<!-- Page Wrapper -->
+<div id="wrapper">
+
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+
+        <!-- Main Content -->
+        <div id="content">
+
+            <!-- Topbar -->
+            <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                
+                <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/phone">
+                    <div class="sidebar-brand-icon">
+                        <i class="fas fa-fw fa-light fa-car"></i>
+                    </div>
+                    <div class="sidebar-brand-text mx-3">Parking</div>
+                </a>
+
+                <!-- Topbar Navbar -->
+                <ul class="navbar-nav ml-auto">
+
+                    <!-- Nav Item - Search Dropdown (Visible Only XS) -->
+                    <li class="nav-item dropdown no-arrow d-sm-none">
+                        <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <!-- Dropdown - Messages -->
+                        <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
+                            aria-labelledby="searchDropdown">
+                            <form class="form-inline mr-auto w-100 navbar-search">
+                                <div class="input-group">
+                                    <input id="searchContentInput" type="text" class="form-control bg-light border-0 small"
+                                        placeholder="Enter your personal ID" aria-label="Search"
+                                        aria-describedby="basic-addon2">
+                                    <div class="input-group-append">
+                                        <button id="searchBtn" class="btn btn-primary" type="button">
+                                            <i class="fas fa-search fa-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </li>
+
+                </ul>
+
+            </nav>
+            <!-- End of Topbar -->
+
+            <!-- Begin Page Content -->
+            <div class="container-fluid">
+                
+            <!-- Earnings (Monthly) Card Example -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">{{owner.personalId}}</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{owner.name}}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <!-- Page Heading -->
+                <h1 class="h3 mb-2 text-gray-800">Car Information</h1>
+
+
+                <!-- DataTales Example -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-2 font-weight-bold text-primary" style="display:inline-block;">List of cars</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered hover" id="carInfoTable" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>License Number</th>
+                                        <th>Area</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th>License Number</th>
+                                        <th>Area</th>
+                                    </tr>
+                                </tfoot>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- /.container-fluid -->
+
+        </div>
+        <!-- End of Main Content -->
+
+        <!-- Footer -->
+        <footer class="sticky-footer bg-white">
+            <div class="container my-auto">
+                <div class="copyright text-center my-auto">
+                    <span>Copyright &copy; Your Website 2020</span>
+                </div>
+            </div>
+        </footer>
+        <!-- End of Footer -->
+
+    </div>
+    <!-- End of Content Wrapper -->
+
+</div>
+<!-- End of Page Wrapper -->
+
+
+<!-- Bootstrap core JavaScript-->
+<script src="/bootstrap-template/vendor/jquery/jquery.min.js"></script>
+<script src="/bootstrap-template/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Core plugin JavaScript-->
+<script src="/bootstrap-template/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+<!-- Custom scripts for all pages-->
+<script src="/bootstrap-template/js/sb-admin-2.min.js"></script>
+
+<!-- Page level plugins -->
+<script src="/bootstrap-template/vendor/datatables/jquery.dataTables.min.js"></script>
+<script src="/bootstrap-template/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+
+<!-- Page level custom scripts -->
+<script src="/bootstrap-template/js/demo/datatables-demo.js"></script>
+
+<script>
+    $(document).ready(function () {
+        function getData() {
+            $.ajax({
+                url: "/phone/{{owner.personalId}}/area-car",
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    const output = convertRawDataToTableData(result.owner);
+                    renderTable(output);
+                },
+                error: function (errormessage) {
+                    console.log(errormessage.responseText);
+                },
+                complete: function() {
+                }
+            });
+        };
+
+        function convertRawDataToTableData(input) {
+            let output = [];
+            for (const item in input.carInfos) {
+                const row = [input.carInfos[item].licenseNum, input.areaOfCar[item]];
+                output.push(row);
+            }
+            return output;
+        }
+
+        function renderTable(data) {
+            $('#carInfoTable').DataTable().destroy();
+            $('#carInfoTable').DataTable({
+                data: data,
+                order: [[0, 'desc']],
+            });
+        }
+
+        getData();
+        
+        // Search 
+        $('#searchBtn').on( "click", ()=>{
+            console.log($('#searchContentInput').val());
+            location.replace('/phone/' + $('#searchContentInput').val());
+        });
+
+    });
+</script>

@@ -1,0 +1,4 @@
+table.dataTable tr:hover td {
+  background-color: lightgray !important;
+  cursor: pointer;
+}

@@ -1,0 +1,640 @@
+
+<!-- Page Wrapper -->
+<div id="wrapper">
+
+    <!-- Sidebar -->
+    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+        <!-- Sidebar - Brand -->
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
+            <div class="sidebar-brand-icon">
+                <i class="fas fa-fw fa-light fa-car"></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">Car Parking</div>
+        </a>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider my-0">
+
+        <!-- Nav Item - Dashboard -->
+        <li class="nav-item">
+            <a class="nav-link" href="/">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span></a>
+        </li>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+
+        <!-- Nav Item - Car Information Menu -->
+        <li class="nav-item">
+            <a class="nav-link" href="/car-info">
+                <i class="fas fa-fw fa-table"></i>
+                <span>Car Information</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Owner Menu -->
+        <li class="nav-item">
+            <a class="nav-link" href="/owner">
+                <i class="fas fa-fw fa-regular fa-address-card"></i>
+                <span>Owners</span>
+            </a>
+        </li>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+
+        <!-- Nav Item - Check-in Menu -->
+        <li class="nav-item">
+            <a class="nav-link" href="/check-in">
+                <i class="fas fa-fw fa-solid fa-angles-right"></i>
+                <span>Check-in-out</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Check-in Menu -->
+        <li class="nav-item">
+            <a class="nav-link" href="/bill">
+                <i class="fas fa-fw fa-thin fa-money-bill"></i>
+                <span>Bills</span>
+            </a>
+        </li>
+
+        
+
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+
+        <!-- Nav Item - Gate Menu -->
+        <li class="nav-item">
+            <a class="nav-link" href="/gate">
+                <i class="fa-fw fa-solid fa-road-barrier"></i>
+                <span>Gates</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Areas Menu -->
+        <li class="nav-item">
+            <a class="nav-link" href="/area">
+                <i class="fas fa-fw fa-light fa-clone"></i>
+                <span>Areas</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Devices Menu -->
+        <li class="nav-item active">
+            <a class="nav-link" href="/device">
+                <i class="fa-fw fa-solid fa-microchip"></i>
+                <span>Devices</span>
+            </a>
+        </li>
+
+        <div class="text-center d-none d-md-inline">
+            <button class="rounded-circle border-0" id="sidebarToggle"></button>
+        </div>
+
+    </ul>
+    <!-- End of Sidebar -->
+
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+
+        <!-- Main Content -->
+        <div id="content">
+
+            <!-- Topbar -->
+            <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+                <!-- Sidebar Toggle (Topbar) -->
+                <form class="form-inline">
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                </form>
+
+                <!-- Topbar Navbar -->
+                <ul class="navbar-nav ml-auto">
+
+                    <!-- Nav Item - Search Dropdown (Visible Only XS) -->
+                    <li class="nav-item dropdown no-arrow d-sm-none">
+                        <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <!-- Dropdown - Messages -->
+                        <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
+                            aria-labelledby="searchDropdown">
+                            <form class="form-inline mr-auto w-100 navbar-search">
+                                <div class="input-group">
+                                    <input type="text" class="form-control bg-light border-0 small"
+                                        placeholder="Search for..." aria-label="Search"
+                                        aria-describedby="basic-addon2">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary" type="button">
+                                            <i class="fas fa-search fa-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </li>
+
+                    
+
+                    <div class="topbar-divider d-none d-sm-block"></div>
+
+                    <!-- Nav Item - User Information -->
+                    <li class="nav-item dropdown no-arrow">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span id="username" class="mr-2 d-none d-lg-inline text-gray-600 small"></span>
+                            <img class="img-profile rounded-circle"
+                                src="/bootstrap-template/img/undraw_profile.svg">
+                        </a>
+                        <!-- Dropdown - User Information -->
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                            aria-labelledby="userDropdown">
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                Logout
+                            </a>
+                        </div>
+                    </li>
+
+                </ul>
+
+            </nav>
+            <!-- End of Topbar -->
+
+            <!-- Begin Page Content -->
+            <div class="container-fluid">
+
+                <!-- Page Heading -->
+                <h1 class="h3 mb-2 text-gray-800">Devices</h1>
+
+
+                <!-- DataTales Example -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-2 font-weight-bold text-primary" style="display:inline-block;">List of devices</h6>
+                        <button onclick=$('#addNewDeviceModal').modal("show") type="button" class="btn btn-primary" style="display:inline-block; float: right">Add new device</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered hover" id="deviceTable" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>Device type</th>
+                                        <th>Device code</th>
+                                        <th>State</th>
+                                        <th>Place at</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th>Device type</th>
+                                        <th>Device code</th>
+                                        <th>State</th>
+                                        <th>Place at</th>
+                                    </tr>
+                                </tfoot>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- /.container-fluid -->
+
+        </div>
+        <!-- End of Main Content -->
+
+        <!-- Footer -->
+        <footer class="sticky-footer bg-white">
+            <div class="container my-auto">
+                <div class="copyright text-center my-auto">
+                    <span>Copyright &copy; Quang Quyen 2023</span>
+                </div>
+            </div>
+        </footer>
+        <!-- End of Footer -->
+
+    </div>
+    <!-- End of Content Wrapper -->
+
+</div>
+<!-- End of Page Wrapper -->
+
+<!-- Scroll to Top Button-->
+<a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+</a>
+
+<!-- Logout Modal-->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <a id="log-out" class="btn btn-primary" onclick="location.href='/login'">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Device Modal-->
+<div class="modal fade" id="deviceModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Car Information</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="name">Device type</label>
+                    <input type="text" class="form-control" value="" disabled id="deviceTypeDeviceModal" name="deviceTypeDeviceModal">
+                </div>
+
+                <div class="form-group">
+                    <label for="videoId">Device code</label>
+                    <input type="text" class="form-control" value = "" disabled id="deviceCodeDeviceModal" name="deviceCodeDeviceModal">
+                </div>
+
+                <div class="form-group">
+                    <label for="videoId">State</label>
+                    <input type="text" class="form-control" value = "" id="stateDeviceModal" name="stateDeviceModal">
+                </div>
+
+                <div class="form-group">
+                    <label for="videoId">Place at</label>
+                    <input type="text" class="form-control" value = "" id="placeCodeDeviceModal" name="placeCodeDeviceModal">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="deleteBtn" type="button" >Delete</button>
+                <button class="btn btn-primary" id="updateBtn" type="button" >Update</button>
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add New Device Modal-->
+<div class="modal fade" id="addNewDeviceModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Device Information</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="name">Device type</label>
+                    <input type="text" class="form-control" value="" id="deviceTypeAddNewDeviceModal" name="deviceTypeAddNewDeviceModal">
+                </div>
+
+                <div class="form-group">
+                    <label for="videoId">Device code</label>
+                    <input type="text" class="form-control" value = "" id="deviceCodeAddNewDeviceModal" name="deviceCodeAddNewDeviceModal">
+                </div>
+
+                <div class="form-group">
+                    <label for="videoId">State</label>
+                    <input type="text" class="form-control" value = "" id="stateAddNewDeviceModal" name="stateAddNewDeviceModal">
+                </div>
+
+                <div class="form-group">
+                    <label for="videoId">Place at</label>
+                    <input type="text" class="form-control" value = "" id="placeCodeAddNewDeviceModal" name="placeCodeAddNewDeviceModal">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="addNewDeviceModalBtn" type="button">Add</button>
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Delete Device Modal-->
+<div class="modal fade" id="confirmDeleteDeviceModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Delete?</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">Are you sure you wish to delete?</div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="confirmDeleteDeviceModalBtn" type="button">Confirm</button>
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Existed Device Modal-->
+<div class="modal fade" id="alertExistedDeviceModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Delete?</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">This device code already exists</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap core JavaScript-->
+<script src="/bootstrap-template/vendor/jquery/jquery.min.js"></script>
+<script src="/bootstrap-template/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Core plugin JavaScript-->
+<script src="/bootstrap-template/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+<!-- Custom scripts for all pages-->
+<script src="/bootstrap-template/js/sb-admin-2.min.js"></script>
+
+<!-- Page level plugins -->
+<script src="/bootstrap-template/vendor/datatables/jquery.dataTables.min.js"></script>
+<script src="/bootstrap-template/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+
+<!-- Page level custom scripts -->
+<script src="/bootstrap-template/js/demo/datatables-demo.js"></script>
+
+<script>
+    $(document).ready(function () {
+        function getData() {
+            $.ajax({
+                url: "device/data",
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    const output = convertRawDataToTableData(result);
+                    renderTable(output);
+                },
+                error: function (errormessage) {
+                    console.log(errormessage.responseText);
+                },
+                complete: function() {
+                }
+            });
+        };
+
+        function convertRawDataToTableData(input) {
+            let output = [];
+            for (const item of input.items) {
+                const row = [item.deviceType, item.deviceCode, item.state, item.placeCode];
+                output.push(row);
+            }
+            return output;
+        }
+
+        function renderTable(data) {
+            $('#deviceTable').DataTable().destroy();
+            $('#deviceTable').DataTable({
+                data: data,
+                order: [[0, 'desc']],
+            });
+        }
+
+        getData();
+
+        // To show dialog
+        var table = $('#deviceTable').DataTable();
+        $('#deviceTable').on('click', 'tbody tr', function() {
+            var deviceType= $(this).children("td:eq(0)").text()
+            const deviceCode = $(this).children("td:eq(1)").text()
+            deviceType = deviceType.toLowerCase();
+            $.ajax({
+                url: "/device/" + deviceType + "/" + deviceCode,
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    $('#deviceTypeDeviceModal').val(result.deviceType);
+                    $('#deviceCodeDeviceModal').val(result.deviceCode);
+                    $('#stateDeviceModal').val(result.state);
+                    $('#placeCodeDeviceModal').val(result.placeCode);
+                    $('#deviceCodeDeviceModal').attr("data-id", result._id);
+                    $('#deviceModal').modal("show");
+                },
+                error: function (errormessage) {
+                    console.log(errormessage.responseText);
+                },
+                complete: function() {
+                }
+            });
+        })
+
+        // Update device
+        function updateDevice() {
+            var deviceType = $('#deviceTypeDeviceModal').val();
+            deviceType = deviceType.toLowerCase();
+            var areaCode = "";
+            var gateCode = "";
+
+            const placeCode = $('#placeCodeDeviceModal').val();
+            if (placeCode.includes("MC"))
+                gateCode = placeCode;
+            else
+                areaCode = placeCode;
+            
+            var data;
+            if (deviceType == "sensor") {
+                data = {sensorCode: $('#deviceCodeDeviceModal').val(),
+                state: $('#stateDeviceModal').val(),
+                areaCode: areaCode,
+                gateCode: gateCode};
+            }
+            else if (deviceType == "reader") {
+                data = {readerCode: $('#deviceCodeDeviceModal').val(),
+                state: $('#stateDeviceModal').val(),
+                areaCode: areaCode,
+                gateCode: gateCode};
+            }
+            else if (deviceType == "camera"){
+                data = {cameraCode: $('#deviceCodeDeviceModal').val(),
+                state: $('#stateDeviceModal').val(),
+                areaCode: areaCode,
+                gateCode: gateCode};
+            }
+
+            const auth = JSON.parse(localStorage.getItem("auth"));
+            const id = $('#deviceCodeDeviceModal').attr("data-id");
+            console.log(data)
+            console.log(id)
+            $.ajax({
+                url: "/device/update/" + deviceType + "/" + id,
+                type: "PUT",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                headers: {authUsername: auth.username},
+                data: JSON.stringify(data),
+                success: function (result) {
+                    $('#deviceModal').modal('hide');
+                    getData();
+                },
+                error: function (errormessage) {
+                    console.log(errormessage.responseText);
+                },
+                complete: function() {
+                }
+            });
+        }
+
+        // Delete device
+        function deleteDevice() {
+            var deviceType = $('#deviceTypeDeviceModal').val();
+            deviceType = deviceType.toLowerCase()
+            const id = $('#deviceCodeDeviceModal').attr("data-id");
+            const auth = JSON.parse(localStorage.getItem("auth"));
+            $.ajax({
+                url: "/device/delete/" + deviceType + "/" + id,
+                type: "DELETE",
+                contentType: "application/json;charset=utf-8",
+                headers: {authUsername: auth.username},
+                success: function (result) {
+                    $('#confirmDeleteDeviceModal').modal('hide');
+                    getData();
+                },
+                error: function (errormessage) {
+                    console.log(errormessage.responseText);
+                },
+                complete: function() {
+                }
+            });
+        }
+
+        // Add device
+        function addNewDevice() {
+            var deviceType = $('#deviceTypeAddNewDeviceModal').val();;
+            deviceType = deviceType.toLowerCase();
+            var areaCode = "";
+            var gateCode = "";
+
+            const placeCode = $('#placeCodeAddNewDeviceModal').val();
+            if (placeCode.includes("MC"))
+                gateCode = placeCode;
+            else
+                areaCode = placeCode;
+            
+            var data;
+            if (deviceType == "sensor") {
+                data = {sensorCode: $('#deviceCodeAddNewDeviceModal').val(),
+                state: $('#stateAddNewDeviceModal').val(),
+                areaCode: areaCode,
+                gateCode: gateCode};
+            }
+            else if (deviceType == "reader") {
+                data = {readerCode: $('#deviceCodeAddNewDeviceModal').val(),
+                state: $('#stateAddNewDeviceModal').val(),
+                areaCode: areaCode,
+                gateCode: gateCode};
+            }
+            else if (deviceType == "camera"){
+                data = {cameraCode: $('#deviceCodeAddNewDeviceModal').val(),
+                state: $('#stateAddNewDeviceModal').val(),
+                areaCode: areaCode,
+                gateCode: gateCode};
+            }
+
+            console.log(data)
+            const auth = JSON.parse(localStorage.getItem("auth"));
+            $.ajax({
+                url: "/device/store/" + deviceType,
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                headers: {authUsername: auth.username},
+                data: JSON.stringify(data),
+                success: function (result) {
+                    console.log(result)
+                    if (result == 'present') // Check if device already exists 
+                        $('#alertExistedDeviceModal').modal('show');
+                    $('#addNewDeviceModal').modal('hide');
+                    getData();
+                },
+                error: function (errormessage) {
+                    console.log(errormessage.responseText);
+                },
+                complete: function() {
+                }
+            });
+        }
+
+        // Listen update button click
+        $( "#updateBtn" ).on( "click", updateDevice);
+
+        // Listen delete button click
+        $( "#deleteBtn" ).on( "click", function(){
+            $('#deviceModal').modal('hide');
+            $('#confirmDeleteDeviceModal').modal('show');
+        });
+
+        // Listen confirm delete button click
+        $( "#confirmDeleteDeviceModalBtn" ).on( "click", deleteDevice);
+
+        // Listen add new car button click
+        $( "#addNewDeviceModalBtn" ).on( "click", addNewDevice);
+
+        // Disable button 
+        if(JSON.parse(localStorage.getItem("auth"))['username'] !== 'tech'){
+            $( "#updateBtn" ).prop( "disabled", true );
+            $( "#deleteBtn" ).prop( "disabled", true );
+            $( "#confirmDeleteDeviceModalBtn" ).prop( "disabled", true );
+            $( "#addNewDeviceModalBtn" ).prop( "disabled", true );
+        }
+
+        // log out
+        $( "#log-out" ).on( "click", () => {
+            localStorage.removeItem("auth");
+        })
+
+        if (JSON.parse(localStorage.getItem("auth"))['username'] === 'admin'){
+            $( "#username" )[0].innerHTML = 'Administrator'
+        }
+        else if (JSON.parse(localStorage.getItem("auth"))['username'] === 'tech'){
+            $( "#username" )[0].innerHTML = 'Technician'
+        }
+        else {
+            $( "#username" )[0].innerHTML = 'Username'
+        }
+
+        var socket = io();
+        socket.on('newCheckIn', function(signal) {
+            if (signal) getData();
+        });
+
+
+    });
+</script>

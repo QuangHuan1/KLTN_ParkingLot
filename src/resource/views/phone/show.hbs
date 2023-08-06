@@ -1,0 +1,237 @@
+
+<!-- Page Wrapper -->
+<div id="wrapper">
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+
+        <!-- Main Content -->
+        <div id="content">
+
+            <!-- Topbar -->
+            <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+                <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/phone">
+                    <div class="sidebar-brand-icon">
+                        <i class="fas fa-fw fa-light fa-car"></i>
+                    </div>
+                    <div class="sidebar-brand-text mx-3">Parking</div>
+                </a>
+                
+                <!-- Topbar Navbar -->
+                <ul class="navbar-nav ml-auto">
+
+                    <!-- Nav Item - Search Dropdown (Visible Only XS) -->
+                    <li class="nav-item dropdown no-arrow d-sm-none">
+                        <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <!-- Dropdown - Messages -->
+                        <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
+                            aria-labelledby="searchDropdown">
+                            <form class="form-inline mr-auto w-100 navbar-search">
+                                <div class="input-group">
+                                    <input id="searchContentInput" type="text" class="form-control bg-light border-0 small"
+                                        placeholder="Enter your personal ID" aria-label="Search"
+                                        aria-describedby="basic-addon2">
+                                    <div class="input-group-append">
+                                        <button id="searchBtn" class="btn btn-primary" type="button">
+                                            <i class="fas fa-search fa-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </li>
+
+                </ul>
+
+            </nav>
+            <!-- End of Topbar -->
+
+            <!-- Begin Page Content -->
+            <div class="container-fluid">
+
+                <!-- Page Heading -->
+                <h1 class="h3 mb-2 text-gray-800">Dashboard</h1>
+
+                <!-- Content Row -->    
+                <div class="row">
+                    <!-- Pie Chart -->
+                    <div class="col-xl-4 col-lg-5">
+                        <div class="card shadow mb-4">
+                            <!-- Card Header - Dropdown -->
+                            <div
+                                class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <h6 class="m-0 font-weight-bold text-primary">Area 1</h6>
+                                <div class="dropdown no-arrow">
+                                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <!-- Card Body -->
+                            <div class="card-body">
+                                <div class="chart-pie pt-4   pb-2">
+                                    <canvas id="myPieChart1"></canvas>
+                                </div>
+                                <div class="mt-4 text-center small">
+                                    <span class="mr-2">
+                                    </span>
+                                    <span class="mr-2">
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <!-- Content Row -->    
+                <div class="row">                  
+                    <!-- Pie Chart -->
+                    <div class="col-xl-4 col-lg-5">
+                        <div class="card shadow mb-4">
+                            <!-- Card Header - Dropdown -->
+                            <div
+                                class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <h6 class="m-0 font-weight-bold text-primary">Area 2</h6>
+                                <div class="dropdown no-arrow">
+                                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <!-- Card Body -->
+                            <div class="card-body">
+                                <div class="chart-pie pt-4   pb-2">
+                                    <canvas id="myPieChart2"></canvas>
+                                </div>
+                                <div class="mt-4 text-center small">
+                                    <span class="mr-2">
+                                    </span>
+                                    <span class="mr-2">
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- /.container-fluid -->
+
+        </div>
+        <!-- End of Main Content -->
+
+    </div>
+    <!-- End of Content Wrapper -->
+
+</div>
+<!-- End of Page Wrapper -->
+
+<!-- Scroll to Top Button-->
+<a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+</a>
+
+
+
+<!-- Bootstrap core JavaScript-->
+<script src="/bootstrap-template/vendor/jquery/jquery.min.js"></script>
+<script src="/bootstrap-template/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Core plugin JavaScript-->
+<script src="/bootstrap-template/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+<!-- Custom scripts for all pages-->
+<script src="/bootstrap-template/js/sb-admin-2.min.js"></script>
+
+<!-- Page level plugins -->
+<script src="/bootstrap-template/vendor/datatables/jquery.dataTables.min.js"></script>
+<script src="/bootstrap-template/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<link rel="stylesheet" href="/css/syncro.css" />
+
+<!-- Page level custom scripts -->
+<script src="/bootstrap-template/js/demo/datatables-demo.js"></script>
+
+<script>
+    $(document).ready(function () {
+
+        // Search 
+        $('#searchBtn').on( "click", ()=>{
+            console.log($('#searchContentInput').val());
+            location.replace('/phone/' + $('#searchContentInput').val());
+        });
+
+        var vacancies1;
+        var vacancies2;
+        var totalSlot1;
+        var totalSlot2;
+
+
+        function getVacancies() {
+            $.ajax({
+                url: "/vacancy",
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    vacancies1 = result.area1.vacancy;
+                    vacancies2 = result.area2.vacancy;
+                    totalSlot1 = result.area1.totalSlot;
+                    totalSlot2 = result.area2.totalSlot;
+                    console.log(vacancies1, vacancies2, totalSlot1, totalSlot2)
+                    renderPieChart('myPieChart1', vacancies1, totalSlot1 - vacancies1)
+                    renderPieChart('myPieChart2', vacancies2, totalSlot2 - vacancies2)
+                },
+                error: function (errormessage) {
+                    console.log(errormessage.responseText);
+                },
+                complete: function() {
+                }
+            });
+        };
+
+        getVacancies();
+        renderPieChart();
+        var socket = io();
+        socket.on('newCheckIn', function(signal) {
+            if (signal) 
+            {
+                getVacancies();
+            }
+        });
+
+        function renderPieChart(chart, vacancies, usedSlots)
+        {    
+            var xValues = ["Vacancies", "Used slots"];
+            var yValues = [vacancies, usedSlots];
+            var barColors = [
+            "#1cc88a",
+            "#4e73df"
+            ];
+
+            new Chart(chart, {
+                type: "doughnut",
+                data: {
+                    labels: xValues,
+                    datasets: [{
+                    backgroundColor: barColors,
+                    data: yValues
+                    }]
+                },
+                options: {
+                    title: {
+                    display: false,
+                    }
+                }
+            });
+        }
+    });
+                
+</script>
